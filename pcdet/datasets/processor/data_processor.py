@@ -37,7 +37,8 @@ def makeBEVMap(PointCloud_, boundary, res_x, res_y, BEV_HEIGHT, BEV_WIDTH):
     val_flag_1 = np.logical_and(PointCloud_[:, 0] > boundary[0], PointCloud_[:, 0] < boundary[3])
     val_flag_2 = np.logical_and(PointCloud_[:, 1] > boundary[1], PointCloud_[:, 1] < boundary[4])
     val_flag_3 = np.logical_and(PointCloud_[:, 2] > boundary[2], PointCloud_[:, 2] < boundary[5])
-    val_flag_merge = np.logical_and(val_flag_1, val_flag_2, val_flag_3)
+    val_flag_merge = np.logical_and(val_flag_1, val_flag_2)
+    val_flag_merge = np.logical_and(val_flag_merge,val_flag_3)
     PointCloud = PointCloud_[val_flag_merge]
 
     # Discretize Feature Map

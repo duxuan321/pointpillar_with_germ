@@ -65,10 +65,17 @@ MODEL:
             }
 
         POST_PROCESSING:
+            STRIDE: 4   # 下采样的倍数
             SCORE_THRESH: 0.1
             PRE_MAX_SIZE: 100
             #POST_PROCESS_STYLE: anchor_free
             POST_PROCESS_STYLE: DBSCAN
+            DBSCAN_PARAMATER: {
+              'eps':1,
+              'min_samples':2,
+              'score_thresh':0.1,
+              'cls_thresh':[0.095,0.06,0.049]  # 对应类别['Car', 'Pedestrian', 'Cyclist']
+            }
 
     POST_PROCESSING:
             RECALL_THRESH_LIST: [0.3, 0.5, 0.7]

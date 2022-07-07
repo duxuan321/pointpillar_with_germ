@@ -90,15 +90,21 @@ class AnchorFreeSingle(nn.Module):
         } for k in range(batch_size)]
 
         h, w = cls_preds.shape[2:4]
-        stride = int(self.grid_size[0] // w)
 
+        stride =  post_process_cfg.get('STRIDE',4)
         post_process_style = post_process_cfg.get('POST_PROCESS_STYLE', 'anchor_free') 
         pre_max_size = post_process_cfg.get('PRE_MAX_SIZE', 40)
+        dbscan_paramaters = post_process_cfg.get('DBSCAN_PARAMATER', {
+              'eps':1,
+              'min_samples':2,
+              'score_thresh':0.2,
+              'cls_thresh':[0.1,0.1,0.1]
+            })
         #print("测试",post_process_style)
         if post_process_style == 'anchor_free':
             ret_dict = postprocessing_v2(cls_preds, box_preds, self.point_cloud_range, self.grid_size, self.num_class, stride, score_thresh, pre_max_size, ret_dict)
         elif post_process_style == 'DBSCAN':
-            visual_result,ret_dict = postprocessing_v1(cls_preds, box_preds, self.point_cloud_range, self.grid_size, stride, score_thresh, ret_dict)
+            visual_result,ret_dict = postprocessing_v1(cls_preds, box_preds, self.point_cloud_range, self.grid_size, stride, dbscan_paramaters, ret_dict)
             #raise NotImplementedError
         else:
             raise NotImplementedError
@@ -443,7 +449,7 @@ def get_yaw(direction):
 
 from sklearn.cluster import DBSCAN
 import copy
-def postprocessing_v1(cls_preds, box_preds, point_cloud_range, grid_size,stride, score_thresh, ret):
+def postprocessing_v1(cls_preds, box_preds, point_cloud_range, grid_size,stride, dbscan_paramaters, ret):
     """
     input: cls_preds : batch class_num l/down_sample w/dow_sample
         box_preds : batch 8(y x z l w h sin cos) l/down_sample w/dow_sample
@@ -456,18 +462,16 @@ def postprocessing_v1(cls_preds, box_preds, point_cloud_range, grid_size,stride,
             "pred_labels":[N,1],
         }]
 
-    PS:解析h 和 z时，输入的BEV视图的高度不是原始值，是相对于最小高度minZ = -2.73
+    PS:解析h 和 z时，输入的BEV视图的高度不是原始值，是相对于最小高度minZ
     """
     cls_preds = _sigmoid(cls_preds)
     box_preds[:,:2,:,:] = _sigmoid(box_preds[:,:2,:,:])
     device = cls_preds.device
 
-    # TODO:stride的输入有误
-    stride = 4.0
-    # TODO:DBSCAN参数设置
-    EPS = 1
-    MIN_SAMPLES = 2
-    CLASS_THRE = 0.1 # 超过这个阈值的被作为一个聚类点
+    EPS = dbscan_paramaters['eps']
+    MIN_SAMPLES = dbscan_paramaters['min_samples']
+    CLS_THRESH = dbscan_paramaters['cls_thresh'] # 超过这个阈值的被作为一个聚类点
+    SCORE_THRESH = dbscan_paramaters['score_thresh']
 
     batch_size = cls_preds.shape[0]
     class_num = cls_preds.shape[1]
@@ -478,7 +482,7 @@ def postprocessing_v1(cls_preds, box_preds, point_cloud_range, grid_size,stride,
         result = []
         for cls in range(class_num):
             heat_map = cls_preds[i,cls,:,:].cpu().numpy()
-            idx = np.where(heat_map>CLASS_THRE)     # 返回tuple(x_tensor,y_tensor)
+            idx = np.where(heat_map>CLS_THRESH[cls])     # 返回tuple(x_tensor,y_tensor)
 
             # 转换为(N,2)的格式，N为满足阈值的点
             input_db = np.zeros([idx[0].shape[0],2],dtype = np.int)
@@ -486,6 +490,7 @@ def postprocessing_v1(cls_preds, box_preds, point_cloud_range, grid_size,stride,
             input_db[:,1] = idx[1]
 
             if input_db.shape[0]==0:
+
                 continue
             labels = db.fit(input_db).labels_   # 大小为(N,),值为聚类的标签
 
@@ -494,7 +499,7 @@ def postprocessing_v1(cls_preds, box_preds, point_cloud_range, grid_size,stride,
                 # boxes:[6,n] xs ys z w l h sin cos
                 boxes = box_preds[i,:,input_db[labels==k][:,0],input_db[labels==k][:,1]]
                 score = cls_preds[i,cls,input_db[labels==k][:,0],input_db[labels==k][:,1]].max().cpu().numpy().tolist()
-                if score<score_thresh:
+                if score<SCORE_THRESH:
                     continue
 
                 x = input_db[labels==k][:,0].mean()
@@ -546,6 +551,9 @@ def get_eval_result(detections,point_cloud_range, grid_size,ret):
     for i in range(len(detections_copy)):    # batch
         boxes = detections_copy[i]
         if boxes.shape[0] == 0:
+            ret[i]["pred_boxes"]= torch.zeros([0,0],dtype = float,device = boxes.device)
+            ret[i]["pred_scores"] = torch.zeros([0,0],dtype = float,device = boxes.device)
+            ret[i]["pred_labels"] = torch.zeros([0,0],dtype = float,device = boxes.device)
             continue
 
         # 解析为lidar坐标系下的位置和大小
@@ -649,9 +657,7 @@ def postprocessing_v2(cls_preds, box_preds, point_cloud_range, grid_size, num_cl
         # 结果解析
         preds_col = detection[:, 1].clone()
         preds_row = detection[:, 2].clone()
-        #print("anchor_free_head测试",stride,point_cloud_range[3] - point_cloud_range[0],point_cloud_range[4] - point_cloud_range[1],
-        #grid_size,cls_preds.shape)
-        stride = 4.0
+  
         detection[:,1] = preds_row * stride * (point_cloud_range[3] - point_cloud_range[0]) / grid_size[0] + point_cloud_range[0]  
         detection[:,2] = preds_col * stride * (point_cloud_range[4] - point_cloud_range[1]) / grid_size[1] + point_cloud_range[1]  
         detection[:,3] += point_cloud_range[2]
