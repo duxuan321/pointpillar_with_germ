@@ -1,0 +1,173 @@
+2022-07-06 18:14:22,730   INFO  **********************Start logging**********************
+2022-07-06 18:14:22,730   INFO  CUDA_VISIBLE_DEVICES=1
+2022-07-06 18:14:22,730   INFO  cfg_file         ./cfgs/kitti_models/mvlidarnet.yaml
+2022-07-06 18:14:22,730   INFO  batch_size       1
+2022-07-06 18:14:22,730   INFO  workers          4
+2022-07-06 18:14:22,730   INFO  extra_tag        default
+2022-07-06 18:14:22,730   INFO  ckpt             /home/yantingxin/workspace/MVlidarNet_pcdet/output/cfgs/kitti_models/mvlidarnet/default/ckpt/checkpoint_epoch_80.pth
+2022-07-06 18:14:22,730   INFO  launcher         none
+2022-07-06 18:14:22,730   INFO  tcp_port         18888
+2022-07-06 18:14:22,730   INFO  local_rank       0
+2022-07-06 18:14:22,730   INFO  set_cfgs         None
+2022-07-06 18:14:22,730   INFO  max_waiting_mins 30
+2022-07-06 18:14:22,730   INFO  start_epoch      0
+2022-07-06 18:14:22,731   INFO  eval_tag         default
+2022-07-06 18:14:22,731   INFO  eval_all         False
+2022-07-06 18:14:22,731   INFO  ckpt_dir         None
+2022-07-06 18:14:22,731   INFO  save_to_file     False
+2022-07-06 18:14:22,731   INFO  cfg.ROOT_DIR: /home/yantingxin/workspace/MVlidarNet_pcdet
+2022-07-06 18:14:22,731   INFO  cfg.LOCAL_RANK: 0
+2022-07-06 18:14:22,731   INFO  cfg.CLASS_NAMES: ['Car', 'Pedestrian', 'Cyclist']
+2022-07-06 18:14:22,731   INFO  
+cfg.DATA_CONFIG = edict()
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.DATASET: KittiDataset
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.DATA_PATH: /home/yantingxin/workspace/dataset/kitti
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
+2022-07-06 18:14:22,731   INFO  
+cfg.DATA_CONFIG.DATA_SPLIT = edict()
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.DATA_SPLIT.train: train
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.DATA_SPLIT.test: val
+2022-07-06 18:14:22,731   INFO  
+cfg.DATA_CONFIG.INFO_PATH = edict()
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.INFO_PATH.train: ['kitti_infos_train.pkl']
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.INFO_PATH.test: ['kitti_infos_val.pkl']
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.GET_ITEM_LIST: ['points']
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.FOV_POINTS_ONLY: True
+2022-07-06 18:14:22,731   INFO  
+cfg.DATA_CONFIG.DATA_AUGMENTOR = edict()
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.DATA_AUGMENTOR.DISABLE_AUG_LIST: ['placeholder']
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.DATA_AUGMENTOR.AUG_CONFIG_LIST: [{'NAME': 'gt_sampling', 'DB_INFO_PATH': ['kitti_dbinfos_train.pkl'], 'PREPARE': {'filter_by_min_points': ['Car:5', 'Pedestrian:5', 'Cyclist:5'], 'filter_by_difficulty': [-1]}, 'SAMPLE_GROUPS': ['Car:15', 'Pedestrian:15', 'Cyclist:15'], 'NUM_POINT_FEATURES': 4, 'DATABASE_WITH_FAKELIDAR': False, 'REMOVE_EXTRA_WIDTH': [0.0, 0.0, 0.0], 'LIMIT_WHOLE_SCENE': False}, {'NAME': 'random_world_flip', 'ALONG_AXIS_LIST': ['x']}, {'NAME': 'random_world_rotation', 'WORLD_ROT_ANGLE': [-0.78539816, 0.78539816]}, {'NAME': 'random_world_scaling', 'WORLD_SCALE_RANGE': [0.95, 1.05]}]
+2022-07-06 18:14:22,731   INFO  
+cfg.DATA_CONFIG.POINT_FEATURE_ENCODING = edict()
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.encoding_type: absolute_coordinates_encoding
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.used_feature_list: ['x', 'y', 'z', 'intensity']
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.src_feature_list: ['x', 'y', 'z', 'intensity']
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG.DATA_PROCESSOR: [{'NAME': 'mask_points_and_boxes_outside_range', 'REMOVE_OUTSIDE_BOXES': True}, {'NAME': 'shuffle_points', 'SHUFFLE_ENABLED': {'train': True, 'test': False}}, {'NAME': 'transform_points_to_bev', 'VOXEL_SIZE': [0.1, 0.1, 4]}]
+2022-07-06 18:14:22,731   INFO  cfg.DATA_CONFIG._BASE_CONFIG_: cfgs/dataset_configs/kitti_dataset.yaml
+2022-07-06 18:14:22,731   INFO  
+cfg.MODEL = edict()
+2022-07-06 18:14:22,731   INFO  cfg.MODEL.NAME: CenterPoint
+2022-07-06 18:14:22,731   INFO  
+cfg.MODEL.VFE = edict()
+2022-07-06 18:14:22,731   INFO  cfg.MODEL.VFE.NAME: PlaceHolderVFE
+2022-07-06 18:14:22,732   INFO  
+cfg.MODEL.BACKBONE_2D = edict()
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.BACKBONE_2D.NAME: MVLidarNetBackbone
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.BACKBONE_2D.MULTI_INPUT_CHANNELS: [3, 7]
+2022-07-06 18:14:22,732   INFO  
+cfg.MODEL.DENSE_HEAD = edict()
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.DENSE_HEAD.NAME: AnchorFreeSingle
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.DENSE_HEAD.MAX_OBJECTS: 100
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.DENSE_HEAD.CLASS_AGNOSTIC: False
+2022-07-06 18:14:22,732   INFO  
+cfg.MODEL.DENSE_HEAD.LOSS_CONFIG = edict()
+2022-07-06 18:14:22,732   INFO  
+cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS = edict()
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.cls_weight: 1.0
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.loc_weight: 1.0
+2022-07-06 18:14:22,732   INFO  
+cfg.MODEL.DENSE_HEAD.POST_PROCESSING = edict()
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.DENSE_HEAD.POST_PROCESSING.SCORE_THRESH: 0.1
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.DENSE_HEAD.POST_PROCESSING.PRE_MAX_SIZE: 100
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.DENSE_HEAD.POST_PROCESSING.POST_PROCESS_STYLE: DBSCAN
+2022-07-06 18:14:22,732   INFO  
+cfg.MODEL.POST_PROCESSING = edict()
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.POST_PROCESSING.RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
+2022-07-06 18:14:22,732   INFO  cfg.MODEL.POST_PROCESSING.EVAL_METRIC: kitti
+2022-07-06 18:14:22,732   INFO  
+cfg.OPTIMIZATION = edict()
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.BATCH_SIZE_PER_GPU: 16
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.NUM_EPOCHS: 80
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.OPTIMIZER: adam_onecycle
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.LR: 0.003
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.WEIGHT_DECAY: 0.01
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.MOMENTUM: 0.9
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.MOMS: [0.95, 0.85]
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.PCT_START: 0.4
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.DIV_FACTOR: 10
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.DECAY_STEP_LIST: [35, 45]
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.LR_DECAY: 0.1
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.LR_CLIP: 1e-07
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.LR_WARMUP: False
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.WARMUP_EPOCH: 1
+2022-07-06 18:14:22,732   INFO  cfg.OPTIMIZATION.GRAD_NORM_CLIP: 10
+2022-07-06 18:14:22,733   INFO  cfg.TAG: mvlidarnet
+2022-07-06 18:14:22,733   INFO  cfg.EXP_GROUP_PATH: cfgs/kitti_models
+2022-07-06 18:14:22,734   INFO  Loading KITTI dataset
+2022-07-06 18:14:22,829   INFO  Total samples for KITTI dataset: 3769
+2022-07-06 18:14:22,850   INFO  ==> Loading parameters from checkpoint /home/yantingxin/workspace/MVlidarNet_pcdet/output/cfgs/kitti_models/mvlidarnet/default/ckpt/checkpoint_epoch_80.pth to GPU
+2022-07-06 18:14:26,720   INFO  ==> Checkpoint trained from version: pcdet+0.5.2+0000000
+2022-07-06 18:14:26,729   INFO  ==> Done (loaded 131/131)
+2022-07-06 18:14:26,735   INFO  *************** EPOCH 80 EVALUATION *****************
+2022-07-06 18:18:43,318   INFO  *************** Performance of EPOCH 80 *****************
+2022-07-06 18:18:43,319   INFO  Generate label finished(sec_per_example: 0.0681 second).
+2022-07-06 18:18:43,319   INFO  recall_roi_0.3: 0.000000
+2022-07-06 18:18:43,319   INFO  recall_rcnn_0.3: 0.896344
+2022-07-06 18:18:43,319   INFO  recall_roi_0.5: 0.000000
+2022-07-06 18:18:43,319   INFO  recall_rcnn_0.5: 0.802426
+2022-07-06 18:18:43,319   INFO  recall_roi_0.7: 0.000000
+2022-07-06 18:18:43,319   INFO  recall_rcnn_0.7: 0.535539
+2022-07-06 18:18:43,328   INFO  Average predicted number of objects(3769 samples): 21.607
+2022-07-06 18:19:11,656   INFO  Car AP@0.70, 0.70, 0.70:
+bbox AP:87.6019, 83.5071, 81.2785
+bev  AP:83.5329, 75.2074, 75.3831
+3d   AP:67.4142, 60.2847, 60.0360
+aos  AP:87.55, 83.03, 80.71
+Car AP_R40@0.70, 0.70, 0.70:
+bbox AP:91.3361, 84.7813, 83.0709
+bev  AP:83.7480, 77.9519, 76.4270
+3d   AP:68.7689, 59.6203, 58.4841
+aos  AP:91.28, 84.27, 82.47
+Car AP@0.70, 0.50, 0.50:
+bbox AP:87.6019, 83.5071, 81.2785
+bev  AP:88.4820, 86.7839, 86.6721
+3d   AP:88.2865, 86.3003, 85.7845
+aos  AP:87.55, 83.03, 80.71
+Car AP_R40@0.70, 0.50, 0.50:
+bbox AP:91.3361, 84.7813, 83.0709
+bev  AP:92.7357, 88.9371, 88.7642
+3d   AP:92.4338, 88.3165, 86.5188
+aos  AP:91.28, 84.27, 82.47
+Pedestrian AP@0.50, 0.50, 0.50:
+bbox AP:34.4966, 34.2994, 34.6502
+bev  AP:18.4234, 18.4190, 17.7677
+3d   AP:15.4325, 14.6610, 14.4957
+aos  AP:30.04, 29.67, 29.76
+Pedestrian AP_R40@0.50, 0.50, 0.50:
+bbox AP:30.5223, 31.0743, 30.9124
+bev  AP:16.9995, 16.4842, 15.8256
+3d   AP:14.2191, 13.2823, 12.6304
+aos  AP:25.17, 25.46, 25.17
+Pedestrian AP@0.50, 0.25, 0.25:
+bbox AP:34.4966, 34.2994, 34.6502
+bev  AP:40.8268, 41.5584, 41.7068
+3d   AP:40.7458, 40.8500, 40.4052
+aos  AP:30.04, 29.67, 29.76
+Pedestrian AP_R40@0.50, 0.25, 0.25:
+bbox AP:30.5223, 31.0743, 30.9124
+bev  AP:38.4648, 39.3352, 38.9997
+3d   AP:38.2792, 38.4798, 38.0221
+aos  AP:25.17, 25.46, 25.17
+Cyclist AP@0.50, 0.50, 0.50:
+bbox AP:51.6577, 44.1131, 43.1977
+bev  AP:43.5682, 34.2292, 33.1901
+3d   AP:35.9331, 28.6252, 28.4573
+aos  AP:51.11, 42.51, 41.68
+Cyclist AP_R40@0.50, 0.50, 0.50:
+bbox AP:50.6130, 42.1140, 41.2761
+bev  AP:40.5448, 30.4607, 29.4716
+3d   AP:32.1500, 24.0719, 23.3347
+aos  AP:49.98, 40.24, 39.39
+Cyclist AP@0.50, 0.25, 0.25:
+bbox AP:51.6577, 44.1131, 43.1977
+bev  AP:52.9145, 43.8272, 42.9715
+3d   AP:52.9145, 43.7046, 42.5221
+aos  AP:51.11, 42.51, 41.68
+Cyclist AP_R40@0.50, 0.25, 0.25:
+bbox AP:50.6130, 42.1140, 41.2761
+bev  AP:51.7022, 41.8740, 40.6539
+3d   AP:51.7022, 41.5201, 40.2815
+aos  AP:49.98, 40.24, 39.39
+
+2022-07-06 18:19:11,664   INFO  Result is save to /home/yantingxin/workspace/MVlidarNet_pcdet/output/cfgs/kitti_models/mvlidarnet/default/eval/epoch_80/val/default
+2022-07-06 18:19:11,664   INFO  ****************Evaluation done.*****************

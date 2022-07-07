@@ -1,0 +1,101 @@
+2022-07-06 18:07:25,336   INFO  **********************Start logging**********************
+2022-07-06 18:07:25,337   INFO  CUDA_VISIBLE_DEVICES=1
+2022-07-06 18:07:25,337   INFO  cfg_file         ./cfgs/kitti_models/mvlidarnet.yaml
+2022-07-06 18:07:25,337   INFO  batch_size       1
+2022-07-06 18:07:25,337   INFO  workers          4
+2022-07-06 18:07:25,337   INFO  extra_tag        default
+2022-07-06 18:07:25,337   INFO  ckpt             /home/yantingxin/workspace/MVlidarNet_pcdet/output/cfgs/kitti_models/mvlidarnet/default/ckpt/checkpoint_epoch_80.pth
+2022-07-06 18:07:25,337   INFO  launcher         none
+2022-07-06 18:07:25,337   INFO  tcp_port         18888
+2022-07-06 18:07:25,337   INFO  local_rank       0
+2022-07-06 18:07:25,337   INFO  set_cfgs         None
+2022-07-06 18:07:25,337   INFO  max_waiting_mins 30
+2022-07-06 18:07:25,337   INFO  start_epoch      0
+2022-07-06 18:07:25,337   INFO  eval_tag         default
+2022-07-06 18:07:25,337   INFO  eval_all         False
+2022-07-06 18:07:25,337   INFO  ckpt_dir         None
+2022-07-06 18:07:25,337   INFO  save_to_file     False
+2022-07-06 18:07:25,337   INFO  cfg.ROOT_DIR: /home/yantingxin/workspace/MVlidarNet_pcdet
+2022-07-06 18:07:25,337   INFO  cfg.LOCAL_RANK: 0
+2022-07-06 18:07:25,337   INFO  cfg.CLASS_NAMES: ['Car', 'Pedestrian', 'Cyclist']
+2022-07-06 18:07:25,337   INFO  
+cfg.DATA_CONFIG = edict()
+2022-07-06 18:07:25,337   INFO  cfg.DATA_CONFIG.DATASET: KittiDataset
+2022-07-06 18:07:25,337   INFO  cfg.DATA_CONFIG.DATA_PATH: /home/yantingxin/workspace/dataset/kitti
+2022-07-06 18:07:25,337   INFO  cfg.DATA_CONFIG.POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
+2022-07-06 18:07:25,337   INFO  
+cfg.DATA_CONFIG.DATA_SPLIT = edict()
+2022-07-06 18:07:25,337   INFO  cfg.DATA_CONFIG.DATA_SPLIT.train: train
+2022-07-06 18:07:25,337   INFO  cfg.DATA_CONFIG.DATA_SPLIT.test: val
+2022-07-06 18:07:25,337   INFO  
+cfg.DATA_CONFIG.INFO_PATH = edict()
+2022-07-06 18:07:25,338   INFO  cfg.DATA_CONFIG.INFO_PATH.train: ['kitti_infos_train.pkl']
+2022-07-06 18:07:25,338   INFO  cfg.DATA_CONFIG.INFO_PATH.test: ['kitti_infos_val.pkl']
+2022-07-06 18:07:25,338   INFO  cfg.DATA_CONFIG.GET_ITEM_LIST: ['points']
+2022-07-06 18:07:25,338   INFO  cfg.DATA_CONFIG.FOV_POINTS_ONLY: True
+2022-07-06 18:07:25,338   INFO  
+cfg.DATA_CONFIG.DATA_AUGMENTOR = edict()
+2022-07-06 18:07:25,338   INFO  cfg.DATA_CONFIG.DATA_AUGMENTOR.DISABLE_AUG_LIST: ['placeholder']
+2022-07-06 18:07:25,338   INFO  cfg.DATA_CONFIG.DATA_AUGMENTOR.AUG_CONFIG_LIST: [{'NAME': 'gt_sampling', 'DB_INFO_PATH': ['kitti_dbinfos_train.pkl'], 'PREPARE': {'filter_by_min_points': ['Car:5', 'Pedestrian:5', 'Cyclist:5'], 'filter_by_difficulty': [-1]}, 'SAMPLE_GROUPS': ['Car:15', 'Pedestrian:15', 'Cyclist:15'], 'NUM_POINT_FEATURES': 4, 'DATABASE_WITH_FAKELIDAR': False, 'REMOVE_EXTRA_WIDTH': [0.0, 0.0, 0.0], 'LIMIT_WHOLE_SCENE': False}, {'NAME': 'random_world_flip', 'ALONG_AXIS_LIST': ['x']}, {'NAME': 'random_world_rotation', 'WORLD_ROT_ANGLE': [-0.78539816, 0.78539816]}, {'NAME': 'random_world_scaling', 'WORLD_SCALE_RANGE': [0.95, 1.05]}]
+2022-07-06 18:07:25,338   INFO  
+cfg.DATA_CONFIG.POINT_FEATURE_ENCODING = edict()
+2022-07-06 18:07:25,338   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.encoding_type: absolute_coordinates_encoding
+2022-07-06 18:07:25,338   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.used_feature_list: ['x', 'y', 'z', 'intensity']
+2022-07-06 18:07:25,338   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.src_feature_list: ['x', 'y', 'z', 'intensity']
+2022-07-06 18:07:25,338   INFO  cfg.DATA_CONFIG.DATA_PROCESSOR: [{'NAME': 'mask_points_and_boxes_outside_range', 'REMOVE_OUTSIDE_BOXES': True}, {'NAME': 'shuffle_points', 'SHUFFLE_ENABLED': {'train': True, 'test': False}}, {'NAME': 'transform_points_to_bev', 'VOXEL_SIZE': [0.1, 0.1, 4]}]
+2022-07-06 18:07:25,338   INFO  cfg.DATA_CONFIG._BASE_CONFIG_: cfgs/dataset_configs/kitti_dataset.yaml
+2022-07-06 18:07:25,338   INFO  
+cfg.MODEL = edict()
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.NAME: CenterPoint
+2022-07-06 18:07:25,338   INFO  
+cfg.MODEL.VFE = edict()
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.VFE.NAME: PlaceHolderVFE
+2022-07-06 18:07:25,338   INFO  
+cfg.MODEL.BACKBONE_2D = edict()
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.BACKBONE_2D.NAME: MVLidarNetBackbone
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.BACKBONE_2D.MULTI_INPUT_CHANNELS: [3, 7]
+2022-07-06 18:07:25,338   INFO  
+cfg.MODEL.DENSE_HEAD = edict()
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.DENSE_HEAD.NAME: AnchorFreeSingle
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.DENSE_HEAD.MAX_OBJECTS: 100
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.DENSE_HEAD.CLASS_AGNOSTIC: False
+2022-07-06 18:07:25,338   INFO  
+cfg.MODEL.DENSE_HEAD.LOSS_CONFIG = edict()
+2022-07-06 18:07:25,338   INFO  
+cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS = edict()
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.cls_weight: 1.0
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.loc_weight: 1.0
+2022-07-06 18:07:25,338   INFO  
+cfg.MODEL.DENSE_HEAD.POST_PROCESSING = edict()
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.DENSE_HEAD.POST_PROCESSING.SCORE_THRESH: 0.2
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.DENSE_HEAD.POST_PROCESSING.PRE_MAX_SIZE: 100
+2022-07-06 18:07:25,338   INFO  cfg.MODEL.DENSE_HEAD.POST_PROCESSING.POST_PROCESS_STYLE: DBSCAN
+2022-07-06 18:07:25,339   INFO  
+cfg.MODEL.POST_PROCESSING = edict()
+2022-07-06 18:07:25,339   INFO  cfg.MODEL.POST_PROCESSING.RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
+2022-07-06 18:07:25,339   INFO  cfg.MODEL.POST_PROCESSING.EVAL_METRIC: kitti
+2022-07-06 18:07:25,339   INFO  
+cfg.OPTIMIZATION = edict()
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.BATCH_SIZE_PER_GPU: 16
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.NUM_EPOCHS: 80
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.OPTIMIZER: adam_onecycle
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.LR: 0.003
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.WEIGHT_DECAY: 0.01
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.MOMENTUM: 0.9
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.MOMS: [0.95, 0.85]
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.PCT_START: 0.4
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.DIV_FACTOR: 10
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.DECAY_STEP_LIST: [35, 45]
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.LR_DECAY: 0.1
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.LR_CLIP: 1e-07
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.LR_WARMUP: False
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.WARMUP_EPOCH: 1
+2022-07-06 18:07:25,339   INFO  cfg.OPTIMIZATION.GRAD_NORM_CLIP: 10
+2022-07-06 18:07:25,339   INFO  cfg.TAG: mvlidarnet
+2022-07-06 18:07:25,339   INFO  cfg.EXP_GROUP_PATH: cfgs/kitti_models
+2022-07-06 18:07:25,340   INFO  Loading KITTI dataset
+2022-07-06 18:07:25,440   INFO  Total samples for KITTI dataset: 3769
+2022-07-06 18:07:25,467   INFO  ==> Loading parameters from checkpoint /home/yantingxin/workspace/MVlidarNet_pcdet/output/cfgs/kitti_models/mvlidarnet/default/ckpt/checkpoint_epoch_80.pth to GPU
+2022-07-06 18:07:29,334   INFO  ==> Checkpoint trained from version: pcdet+0.5.2+0000000
+2022-07-06 18:07:29,343   INFO  ==> Done (loaded 131/131)
+2022-07-06 18:07:29,371   INFO  *************** EPOCH 80 EVALUATION *****************
