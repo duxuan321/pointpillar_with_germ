@@ -39,5 +39,4 @@ python export_jitscript.py --cfg_file ./cfgs/kitti_models/mvlidarnet.yaml --batc
 
 
 ## 5.测试结果记录
-
-[](https://lekqjyg0qj.feishu.cn/docx/doxcnoGr48VgV9szuncjEleGdXd)
+https://lekqjyg0qj.feishu.cn/docx/doxcnoGr48VgV9szuncjEleGdXd
