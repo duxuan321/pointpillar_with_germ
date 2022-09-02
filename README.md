@@ -40,3 +40,18 @@ python export_jitscript.py --cfg_file ./cfgs/kitti_models/mvlidarnet.yaml --batc
 
 ## 5.测试结果记录
 https://lekqjyg0qj.feishu.cn/docx/doxcnoGr48VgV9szuncjEleGdXd
+
+
+## 6. 量化工具安装
+
+# 当CUDA >= 11.1时
+# pip install torch==1.8.0+cu111 torchvision==0.9.0+cu111 torchaudio==0.8.0 -f https://download.pytorch.org/whl/torch_stable.html
+
+git clone --recurse-submodules http://192.168.3.224:8081/toolchain/npu_quantizer
+
+git clone http://192.168.3.224:8081/toolchain/npu_compiler
+
+cd npu_quantizer && pip install -e n-graph && pip install -r requirements.txt && pip install -e .
+
+cd npu_compiler && pip install -r requirements.txt && pip install -e .
+
