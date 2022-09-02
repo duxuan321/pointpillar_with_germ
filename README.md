@@ -42,7 +42,9 @@ python export_jitscript.py --cfg_file ./cfgs/kitti_models/mvlidarnet.yaml --batc
 https://lekqjyg0qj.feishu.cn/docx/doxcnoGr48VgV9szuncjEleGdXd
 
 
-## 6. 量化工具安装
+## 6. 量化编译工具安装
+
+工具链文档
 
 http://192.168.3.224:8090/pages/viewpage.action?pageId=33555282&navigatingVersions=true
 
