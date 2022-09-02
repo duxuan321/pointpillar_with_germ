@@ -36,3 +36,8 @@ CUDA_VISIBLE_DEVICES=3 python test_origin.py --cfg_file ./cfgs/kitti_models/poin
 ## 4.导出jitscript格式的模型
 
 python export_jitscript.py --cfg_file ./cfgs/kitti_models/mvlidarnet.yaml --batch_size 4 --ckpt ../output/epoch_80.pth
+
+
+## 5.测试结果记录
+
+[](https://lekqjyg0qj.feishu.cn/docx/doxcnoGr48VgV9szuncjEleGdXd)
