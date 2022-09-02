@@ -48,7 +48,9 @@ https://lekqjyg0qj.feishu.cn/docx/doxcnoGr48VgV9szuncjEleGdXd
 
 http://192.168.3.224:8090/pages/viewpage.action?pageId=33555282&navigatingVersions=true
 
-安装
+修改代码时所用工具链版本：
+pytorch ==1.8.0  , cuda = 10.2
+
 git clone --recurse-submodules http://192.168.3.224:8081/toolchain/npu_quantizer
 
 git clone http://192.168.3.224:8081/toolchain/npu_compiler
