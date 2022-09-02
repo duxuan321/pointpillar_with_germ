@@ -57,3 +57,5 @@ cd npu_quantizer && pip install -e n-graph && pip install -r requirements.txt &&
 
 cd npu_compiler && pip install -r requirements.txt && pip install -e .
 
+
+更详细的《超星未来NPU工具链开发手册》参见http://192.168.3.224:8081/toolchain/npuv1_tool_docs/tree/master
