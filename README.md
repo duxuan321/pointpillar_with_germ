@@ -7,9 +7,9 @@ python setup.py develop
 CUDA_VISIBLE_DEVICES=2,3 bash scripts/dist_train.sh 2 --batch_size 8 --extra_tag  test --cfg_file ./cfgs/kitti_models/pointpillar.yaml
 
 ## 2.test
-#quant
+##quant
 
-#pointpillar
+##pointpillar
 
 CUDA_VISIBLE_DEVICES=3 python test_part_pfn.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml --batch_size 1 --ckpt /home/yuanxin/mvlidarnet_pcdet/weights/checkpoint_epoch_50.pth
 
@@ -21,6 +21,7 @@ CUDA_VISIBLE_DEVICES=1 python test_origin.py --cfg_file ./cfgs/kitti_models/poin
 
 ## 3.导出onnx
 // 将pointpillar.yaml配置文件中的两处EXPORT_ONNX 设为True（训练测试的时候要改回来）
+
 
 ## backbone以及head
 
