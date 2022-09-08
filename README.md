@@ -12,15 +12,15 @@ python test.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml  --ckpt ../weight
 ## 导出onnx
 python export_onnx_split.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml --ckpt ../weights/checkpoint_epoch_20.pth
 
-##quant & test
+## quant & test
 python quant.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml --ckpt ../weights/checkpoint_epoch_20.pth
 
 
-## 5.测试结果记录
+## 测试结果记录
 https://lekqjyg0qj.feishu.cn/docx/doxcnoGr48VgV9szuncjEleGdXd
 
 
-## 6. 量化编译工具安装
+## 量化编译工具安装
 
 
 修改代码时所用工具链版本：pytorch ==1.8.0  , cuda = 10.2
