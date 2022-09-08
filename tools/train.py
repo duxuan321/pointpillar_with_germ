@@ -1,10 +1,9 @@
-import _init_path
 import argparse
 import datetime
 import glob
 import os
 from pathlib import Path
-from test_origin import repeat_eval_ckpt
+from test import repeat_eval_ckpt
 
 import torch
 import torch.nn as nn
