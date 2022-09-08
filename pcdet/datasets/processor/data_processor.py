@@ -4,7 +4,7 @@ import numpy as np
 from skimage import transform
 import numba
 from ...utils import box_utils, common_utils
-
+import torch
 tv = None
 try:
     import cumm.tensorview as tv
@@ -208,6 +208,83 @@ class DataProcessor(object):
         data_dict['voxel_num_points'] = num_points
         return data_dict
 
+    def transform_voxels_for_pointpillars(self, data_dict=None, config=None, weight=None, bias=None, max_pillars=0, align=False):
+        if data_dict is None:
+            point_cloud_range = np.asarray(self.point_cloud_range)
+            weight = point_cloud_range[3:6] - point_cloud_range[:3]
+            bias = - (point_cloud_range[3:6] + point_cloud_range[:3]) / 2  / weight
+            weight = (1 / weight).tolist()
+            bias = bias.tolist()
+
+            weight += [1.0]
+            weight += [1 / (elem * 2) for elem in self.voxel_size]
+            weight += [1 / elem for elem in self.voxel_size]
+            weight = torch.Tensor(weight).view(1, 1, -1)
+            bias += [-0.5, 0, 0, 0, 0, 0, 0]
+            bias = torch.Tensor([bias]).view(1, 1, -1)
+            return partial(self.transform_voxels_for_pointpillars, config=config, weight=weight, bias=bias, max_pillars=config.MAX_NUMBER_OF_VOXELS, align=config.ALIGN)
+
+        def get_paddings_indicator(actual_num, max_num, axis=0):
+            actual_num = torch.unsqueeze(actual_num, axis + 1)
+            max_num_shape = [1] * len(actual_num.shape)
+            max_num_shape[axis + 1] = -1
+            max_num = torch.arange(max_num, dtype=torch.int, device=actual_num.device).view(max_num_shape)
+            paddings_indicator = actual_num.int() > max_num
+            return paddings_indicator
+
+        voxel_features = torch.from_numpy(data_dict['voxels'])
+        coords = torch.from_numpy(data_dict['voxel_coords']).int()
+        voxel_num_points = torch.from_numpy(data_dict['voxel_num_points'])
+
+        voxel_x = self.voxel_size[0]
+        voxel_y = self.voxel_size[1]
+        voxel_z = self.voxel_size[2]
+        x_offset = voxel_x / 2 + self.point_cloud_range[0]
+        y_offset = voxel_y / 2 + self.point_cloud_range[1]
+        z_offset = voxel_z / 2 + self.point_cloud_range[2]
+
+        points_mean = voxel_features[:, :, :3].sum(dim=1, keepdim=True) / (
+                    voxel_num_points.type_as(voxel_features).view(-1, 1, 1) + 0.00001)
+        f_cluster = voxel_features[:, :, :3] - points_mean
+
+        f_center = torch.zeros_like(voxel_features[:, :, :3])
+        f_center[:, :, 0] = voxel_features[:, :, 0] - (
+                    coords[:, 2].to(voxel_features.dtype).unsqueeze(1) * voxel_x + x_offset)
+        f_center[:, :, 1] = voxel_features[:, :, 1] - (
+                    coords[:, 1].to(voxel_features.dtype).unsqueeze(1) * voxel_y + y_offset)
+        f_center[:, :, 2] = voxel_features[:, :, 2] - (
+                    coords[:, 0].to(voxel_features.dtype).unsqueeze(1) * voxel_z + z_offset)
+
+        features = [voxel_features, f_cluster, f_center]
+        features = torch.cat(features, dim=-1)
+
+        voxel_count = features.shape[1]
+        mask = get_paddings_indicator(voxel_num_points, voxel_count, axis=0)
+        mask = torch.unsqueeze(mask, -1).type_as(voxel_features)
+
+        features = features * weight + bias # 将各个属性处理到同一个分布区间，有利于改善模型的量化效果
+        features *= mask
+        # print(features.view(-1, features.shape[-1]).min(0)[0], features.view(-1, features.shape[-1]).max(0)[0])
+
+        pillar_num = features.shape[0]
+        assert pillar_num <= max_pillars
+        align_features = torch.zeros((max_pillars, features.shape[1], features.shape[2]), dtype=torch.float32)
+        align_features[:pillar_num] = features
+        features = align_features.permute(2, 0, 1).contiguous()
+        features = features.unsqueeze(dim=0)
+
+        data_dict['voxels'] = features.numpy()
+
+        nx = self.grid_size[0]
+        indices = coords[:, 0] + coords[:, 1] * nx + coords[:, 2]
+        align_indices = torch.zeros((max_pillars,), dtype=torch.int32)
+        if self.training:
+            align_indices -= 1
+        align_indices[:pillar_num] = indices
+        indices = align_indices.unsqueeze(1)
+        data_dict['voxel_coords'] = indices.numpy()
+
+        return data_dict
     
 
     def transform_points_to_bev(self, data_dict=None, config=None):

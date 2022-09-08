@@ -6,9 +6,8 @@ import os
 import re
 import time
 from pathlib import Path
-import onnx
+
 import numpy as np
-# print(np.__version__)
 import torch
 from tensorboardX import SummaryWriter
 
@@ -17,15 +16,13 @@ from pcdet.config import cfg, cfg_from_list, cfg_from_yaml_file, log_config_to_f
 from pcdet.datasets import build_dataloader
 from pcdet.models import build_network
 from pcdet.utils import common_utils
-from nquantizer import run_quantizer
-from ncompiler import run_compiler
-from pcdet.models import load_data_to_gpu
+
 
 def parse_config():
     parser = argparse.ArgumentParser(description='arg parser')
     parser.add_argument('--cfg_file', type=str, default=None, help='specify the config for training')
 
-    parser.add_argument('--batch_size', type=int, default=2, required=False, help='batch size for training')
+    parser.add_argument('--batch_size', type=int, default=None, required=False, help='batch size for training')
     parser.add_argument('--workers', type=int, default=4, help='number of workers for dataloader')
     parser.add_argument('--extra_tag', type=str, default='default', help='extra tag for this experiment')
     parser.add_argument('--ckpt', type=str, default=None, help='checkpoint to start from')
@@ -40,7 +37,7 @@ def parse_config():
     parser.add_argument('--eval_tag', type=str, default='default', help='eval tag for this experiment')
     parser.add_argument('--eval_all', action='store_true', default=False, help='whether to evaluate all checkpoints')
     parser.add_argument('--ckpt_dir', type=str, default=None, help='specify a ckpt directory to be evaluated if needed')
-    parser.add_argument('--save_to_file', action='store_true', default=True, help='')
+    parser.add_argument('--save_to_file', action='store_true', default=False, help='')
 
     args = parser.parse_args()
 
@@ -66,12 +63,7 @@ def eval_single_ckpt(model, test_loader, args, eval_output_dir, logger, epoch_id
         cfg, model, test_loader, epoch_id, logger, dist_test=dist_test,
         result_dir=eval_output_dir, save_to_file=args.save_to_file
     )
-def eval_single_ckpt1(model, test_loader, args, eval_output_dir, logger, epoch_id, dist_test=False):
-    # start evaluation
-    eval_utils.eval_one_epoch(
-        cfg, model, test_loader, epoch_id, logger, dist_test=dist_test,
-        result_dir=eval_output_dir, save_to_file=args.save_to_file
-    )
+
 
 def get_no_evaluated_ckpt(ckpt_dir, ckpt_record_file, args):
     ckpt_list = glob.glob(os.path.join(ckpt_dir, '*checkpoint_epoch_*.pth'))
@@ -157,7 +149,7 @@ def main():
         assert args.batch_size % total_gpus == 0, 'Batch size should match the number of gpus'
         args.batch_size = args.batch_size // total_gpus
 
-    output_dir = cfg.ROOT_DIR / 'output'  / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
+    output_dir = cfg.ROOT_DIR / 'output' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
     output_dir.mkdir(parents=True, exist_ok=True)
 
     eval_output_dir = output_dir / 'eval'
@@ -188,6 +180,7 @@ def main():
     log_config_to_file(cfg, logger=logger)
 
     ckpt_dir = args.ckpt_dir if args.ckpt_dir is not None else output_dir / 'ckpt'
+
     test_set, test_loader, sampler = build_dataloader(
         dataset_cfg=cfg.DATA_CONFIG,
         class_names=cfg.CLASS_NAMES,
@@ -196,45 +189,12 @@ def main():
     )
 
     model = build_network(model_cfg=cfg.MODEL, num_class=len(cfg.CLASS_NAMES), dataset=test_set)
-    print(model)
-    model.cuda()
-    model.eval()
-    datalist = []
-    for i, batch_dict in enumerate(test_loader):
-
-        if i == 200:
-            break
-
-        # np.save("./bin/"+str(i)+".npy",data['img'])
-        # import pdb;
-        # pdb.set_trace()
-        load_data_to_gpu(batch_dict)
-
-
-        _, outputs = model(batch_dict)
-        datalist.append(outputs['spatial_features'].detach().cpu())
-
-    input_vars = [torch.randn((1, 64, 496, 432))]
-    work_dir = '/home/yuanxin/mvlidarnet_pcdet'
-    onnx_model = onnx.load('/home/yuanxin/mvlidarnet_pcdet/output/cfgs/kitti_models/pointpillar/default/pointpillar_7728_default.onnx')
-    quant_model = run_quantizer(onnx_model, dataloader=datalist, num_batches=200,
-                                output_dir=work_dir + '/ir_output', input_vars=input_vars)
-    import pdb
-    pdb.set_trace()
-    # run_compiler(input_dir=work_dir + '/ir_output', output_dir=work_dir + '/compiler_output',
-    #              enable_cmodel=True, enable_rtl_model=True, enable_profiler=False)
-    # for i, batch_dict in enumerate(dataloader):
-    #     onnx_model(batch_dict)
-    # import pdb
-    # pdb.set_trace()
     with torch.no_grad():
         if args.eval_all:
             repeat_eval_ckpt(model, test_loader, args, eval_output_dir, logger, ckpt_dir, dist_test=dist_test)
         else:
-            # eval_single_ckpt(model, test_loader, args, eval_output_dir, logger, epoch_id, dist_test=dist_test)
-            eval_single_ckpt1(quant_model, test_loader, args, eval_output_dir, logger, epoch_id, dist_test=dist_test)
+            eval_single_ckpt(model, test_loader, args, eval_output_dir, logger, epoch_id, dist_test=dist_test)
 
-    import pdb
-    pdb.set_trace()
+
 if __name__ == '__main__':
     main()

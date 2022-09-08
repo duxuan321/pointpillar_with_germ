@@ -21,11 +21,18 @@ DATA_CONFIG:
             'train': 16000,
             'test': 40000
           }
+        - NAME: transform_voxels_for_pointpillars
+          WITH_DISTANCE: False
+          USE_ABSLOTE_XYZ: True
+          USE_NORM: True
+          MAX_NUMBER_OF_VOXELS: 16000
+          ALIGN: True
+
     DATA_AUGMENTOR:
         DISABLE_AUG_LIST: ['placeholder']
         AUG_CONFIG_LIST:
             - NAME: gt_sampling
-              USE_ROAD_PLANE: True
+              USE_ROAD_PLANE: False
               DB_INFO_PATH:
                   - kitti_dbinfos_train.pkl
               PREPARE: {
@@ -49,7 +56,7 @@ DATA_CONFIG:
               WORLD_SCALE_RANGE: [0.95, 1.05]
 
 MODEL:
-    NAME: CenterPoint
+    NAME: PointPillar
 
     VFE:
         NAME: PillarVFE
@@ -62,7 +69,6 @@ MODEL:
         NAME: PointPillarScatter
         NUM_BEV_FEATURES: 64
 
-
     BACKBONE_2D:
         NAME: BaseBEVBackbone
         LAYER_NUMS: [3, 5, 5]
@@ -72,54 +78,80 @@ MODEL:
         NUM_UPSAMPLE_FILTERS: [128, 128, 128]
 
     DENSE_HEAD:
-        NAME: AnchorFreeSingle
-        EXPORT_ONNX: False # 这个参数有两个都需要修改（1/2）
-        MAX_OBJECTS: 100
+        NAME: AnchorHeadSingle
         CLASS_AGNOSTIC: False
+
+        USE_DIRECTION_CLASSIFIER: True
+        DIR_OFFSET: 0.78539
+        DIR_LIMIT_OFFSET: 0.0
+        NUM_DIR_BINS: 2
+
+        ANCHOR_GENERATOR_CONFIG: [
+            {
+              'class_name': 'Car',
+              'anchor_sizes': [[3.9, 1.6, 1.56]],
+              'anchor_rotations': [0, 1.57],
+              'anchor_bottom_heights': [-1.78],
+              'align_center': False,
+              'feature_map_stride': 2,
+              'matched_threshold': 0.6,
+              'unmatched_threshold': 0.45
+            },
+            {
+              'class_name': 'Pedestrian',
+              'anchor_sizes': [[0.8, 0.6, 1.73]],
+              'anchor_rotations': [0, 1.57],
+              'anchor_bottom_heights': [-0.6],
+              'align_center': False,
+              'feature_map_stride': 2,
+              'matched_threshold': 0.5,
+              'unmatched_threshold': 0.35
+            },
+            {
+              'class_name': 'Cyclist',
+              'anchor_sizes': [[1.76, 0.6, 1.73]],
+              'anchor_rotations': [0, 1.57],
+              'anchor_bottom_heights': [-0.6],
+              'align_center': False,
+              'feature_map_stride': 2,
+              'matched_threshold': 0.5,
+              'unmatched_threshold': 0.35
+            }
+        ]
+
+        TARGET_ASSIGNER_CONFIG:
+            NAME: AxisAlignedTargetAssigner
+            POS_FRACTION: -1.0
+            SAMPLE_SIZE: 512
+            NORM_BY_NUM_EXAMPLES: False
+            MATCH_HEIGHT: False
+            BOX_CODER: ResidualCoder
 
         LOSS_CONFIG:
             LOSS_WEIGHTS: {
                 'cls_weight': 1.0,
-                'loc_weight': 1.0
+                'loc_weight': 2.0,
+                'dir_weight': 0.2,
+                'code_weights': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
             }
-
-        POST_PROCESSING:
-            STRIDE: 2   # 下采样的倍数
-            SCORE_THRESH: 0.1
-            PRE_MAX_SIZE: 100
-            POST_PROCESS_STYLE: anchor_free
-            #POST_PROCESS_STYLE: DBSCAN
-            DBSCAN_PARAMATER: {
-              'eps':1,
-              'min_samples':2,
-              'score_thresh':0.1,
-              'cls_thresh':[0.095,0.06,0.049]  # 对应类别['Car', 'Pedestrian', 'Cyclist']
-            }
-            NMS_CONFIG:
-              MULTI_CLASSES_NMS: False
-              NMS_TYPE: nms_gpu
-              NMS_THRESH: 0.01
-              NMS_PRE_MAXSIZE: 4096
-              NMS_POST_MAXSIZE: 500
 
     POST_PROCESSING:
-            RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
-            EVAL_METRIC: kitti
-            #EVAL_METRIC: kitti_simple
-            SCORE_THRESH: 0.1
-            PRE_MAX_SIZE: 100
-            POST_PROCESS_STYLE: anchor_free
-            NMS_CONFIG:
-              MULTI_CLASSES_NMS: False
-              NMS_TYPE: nms_gpu
-              NMS_THRESH: 0.01
-              NMS_PRE_MAXSIZE: 4096
-              NMS_POST_MAXSIZE: 500
-    EXPORT_ONNX: False # 这个参数有两个都需要修改（2/2)
+      RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
+      SCORE_THRESH: 0.1
+      OUTPUT_RAW_SCORE: False
+
+      EVAL_METRIC: kitti
+
+      NMS_CONFIG:
+        MULTI_CLASSES_NMS: False
+        NMS_TYPE: nms_gpu
+        NMS_THRESH: 0.01
+        NMS_PRE_MAXSIZE: 4096
+        NMS_POST_MAXSIZE: 500
 
 OPTIMIZATION:
     BATCH_SIZE_PER_GPU: 4
-    NUM_EPOCHS: 50
+    NUM_EPOCHS: 20
 
     OPTIMIZER: adam_onecycle
     LR: 0.003

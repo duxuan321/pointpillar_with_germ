@@ -24,7 +24,7 @@ def parse_config():
     parser = argparse.ArgumentParser(description='arg parser')
     parser.add_argument('--cfg_file', type=str, default=None, help='specify the config for training')
 
-    parser.add_argument('--batch_size', type=int, default=None, required=False, help='batch size for training')
+    parser.add_argument('--batch_size', type=int, default=1, required=False, help='batch size for training')
     parser.add_argument('--workers', type=int, default=4, help='number of workers for dataloader')
     parser.add_argument('--extra_tag', type=str, default='default', help='extra tag for this experiment')
     parser.add_argument('--ckpt', type=str, default=None, help='checkpoint to start from')
@@ -78,52 +78,22 @@ class ExportModel(nn.Module):
     def __init__(self, model):
         super().__init__()
         self.model = model
-
-        self.backbone_2d = model.backbone_2d
-        self.dense_head = model.dense_head
-        #self.model.export_onnx(True)
+        self.model.map_to_bev_module.export_onnx = True
+        self.model.dense_head.export_onnx = True
 
     def forward(self, *args):
-
-        batch_dict = {'spatial_features': args[0]}
-
+        batch_dict = {'voxels': args[0], 'voxel_coords': args[1]}
         global data_dict_info
         data_dict_info.update(batch_dict)
-        data_dict_info = self.backbone_2d(data_dict_info)
-        output = self.dense_head(data_dict_info)
-        # export_boxes = output['export_boxes']
-        # export_boxes = output
+        data_dict_info = self.model.vfe(data_dict_info)
+        data_dict_info = self.model.map_to_bev_module(data_dict_info)
+        data_dict_info = self.model.backbone_2d(data_dict_info)
+        output = self.model.dense_head(data_dict_info)
 
         cls_preds = output['export_cls_preds']
         box_preds = output['export_box_preds']
 
         return  cls_preds,box_preds
-
-# class ExportModel(nn.Module):
-#     def __init__(self, model):
-#         super().__init__()
-#         self.model = model
-#         self.nx = model.map_to_bev_module.nx
-#         setattr(model.map_to_bev_module, 'export', True)
-#         #self.model.export_onnx(True)
-#
-#     def forward(self, *args):
-#
-#         batch_dict = {'voxels': args[0]}
-#         batch_dict.update({'voxel_num_points': args[1]})
-#         batch_dict.update({'voxel_coords': args[2]})
-#         batch_dict.update({'voxel_coords_flatten': args[3]})
-#
-#         global data_dict_info
-#         data_dict_info.update(batch_dict)
-#         output = self.model(data_dict_info)
-#         # export_boxes = output['export_boxes']
-#         # export_boxes = output
-#
-#         cls_preds = output['export_cls_preds']
-#         box_preds = output['export_box_preds']
-#
-#         return  cls_preds,box_preds
 
 def main():
     args, cfg = parse_config()
@@ -186,38 +156,32 @@ def main():
     model.load_params_from_file(filename=args.ckpt, logger=logger, to_cpu=False)
     model.cuda()
 
-    with torch.no_grad():
-        if args.eval_ap:
-            eval_single_ckpt(model, test_loader, args, eval_output_dir, logger, epoch_id, dist_test=dist_test)
-
-
     onnx_dir = cfg.ROOT_DIR / 'output' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
     try:
         onnx_name = args.ckpt[args.ckpt.rindex('/')+1:args.ckpt.rindex('.')] + '_' + args.extra_tag + '.onnx'
     except:
         onnx_name = 'deploy.onnx'
     onnx_path = os.path.join(onnx_dir, onnx_name)
-
     export_model = ExportModel(model)
     export_model.cuda()
 
     global data_dict_info
     batch_dict = next(iter(test_loader))
+    assert batch_dict['batch_size'] == 1
     load_data_to_gpu(batch_dict)
 
-    print("测试",batch_dict.keys())
+    features = batch_dict['voxels']
+    voxel_coords = batch_dict['voxel_coords']
+    voxel_coords = voxel_coords[:, 1]
+    batch_dict.pop('voxels')
+    batch_dict.pop('voxel_coords')
     data_dict_info.update(batch_dict)
-    spatial_features = torch.zeros((1, 64, 432, 496)).cuda()
-    # num_points = points.size(0)
-    # new_points = points.new_zeros(int(num_points * 1.5), points.size(1))
-    # new_points[:num_points] = points
-    # points = new_points.clone().contiguous()
+
     with torch.no_grad():
         export_model.eval()
-
-        torch.onnx.export(export_model, (spatial_features, ), onnx_path, verbose=True, training=False,
+        torch.onnx.export(export_model, (features, voxel_coords), onnx_path, verbose=True, training=False,
                           operator_export_type=torch.onnx.OperatorExportTypes.ONNX_ATEN_FALLBACK, opset_version=9,
-                          input_names=['bev_map'])
+                          input_names=['features', 'flatten_coords'])
         print("导出onnx成功")
 
 if __name__ == '__main__':

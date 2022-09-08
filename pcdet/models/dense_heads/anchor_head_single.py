@@ -32,6 +32,7 @@ class AnchorHeadSingle(AnchorHeadTemplate):
         else:
             self.conv_dir_cls = None
         self.init_weights()
+        self.export_onnx = False
 
     def init_weights(self):
         pi = 0.01
@@ -44,24 +45,54 @@ class AnchorHeadSingle(AnchorHeadTemplate):
         cls_preds = self.conv_cls(spatial_features_2d)
         box_preds = self.conv_box(spatial_features_2d)
 
+        if self.export_onnx:
+            data_dict["export_cls_preds"] = cls_preds
+            data_dict["export_box_preds"] = box_preds
+
+        if self.conv_dir_cls is not None:
+            dir_cls_preds = self.conv_dir_cls(spatial_features_2d)
+            if self.export_onnx:
+                data_dict["export_dir_cls_preds"] = dir_cls_preds
+                return data_dict
+            dir_cls_preds = dir_cls_preds.permute(0, 2, 3, 1).contiguous()
+            self.forward_ret_dict['dir_cls_preds'] = dir_cls_preds
+        else:
+            dir_cls_preds = None
+            if self.export_onnx:
+                return data_dict
+
         cls_preds = cls_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
         box_preds = box_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
 
         self.forward_ret_dict['cls_preds'] = cls_preds
         self.forward_ret_dict['box_preds'] = box_preds
 
-        if self.conv_dir_cls is not None:
-            dir_cls_preds = self.conv_dir_cls(spatial_features_2d)
-            dir_cls_preds = dir_cls_preds.permute(0, 2, 3, 1).contiguous()
-            self.forward_ret_dict['dir_cls_preds'] = dir_cls_preds
-        else:
-            dir_cls_preds = None
-
         if self.training:
             targets_dict = self.assign_targets(
                 gt_boxes=data_dict['gt_boxes']
             )
             self.forward_ret_dict.update(targets_dict)
+
+        if not self.training or self.predict_boxes_when_training:
+            batch_cls_preds, batch_box_preds = self.generate_predicted_boxes(
+                batch_size=data_dict['batch_size'],
+                cls_preds=cls_preds, box_preds=box_preds, dir_cls_preds=dir_cls_preds
+            )
+            data_dict['batch_cls_preds'] = batch_cls_preds
+            data_dict['batch_box_preds'] = batch_box_preds
+            data_dict['cls_preds_normalized'] = False
+
+        return data_dict
+
+    def forward_quant(self, data_dict):
+        cls_preds = data_dict['cls_preds']
+        box_preds = data_dict['box_preds']
+        dir_cls_preds = data_dict['dir_cls_preds']
+
+        cls_preds = cls_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
+        box_preds = box_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
+        dir_cls_preds = dir_cls_preds.permute(0, 2, 3, 1).contiguous()
+
 
         if not self.training or self.predict_boxes_when_training:
             batch_cls_preds, batch_box_preds = self.generate_predicted_boxes(

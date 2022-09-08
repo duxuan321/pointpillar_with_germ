@@ -14,6 +14,7 @@ def conv3x3(in_channels, out_channels, stride=1, padding=1):
             nn.ReLU()]
     return nn.Sequential(*layers)
 ccc=0
+
 class AnchorFreeSingle(nn.Module):
     def __init__(self, model_cfg, input_channels, num_class, class_names, grid_size, point_cloud_range,
                  predict_boxes_when_training=True, **kwargs):
@@ -23,7 +24,7 @@ class AnchorFreeSingle(nn.Module):
         self.class_names = class_names
         self.predict_boxes_when_training = predict_boxes_when_training
         self.max_objects = self.model_cfg.get('MAX_OBJECTS', 100)
-        self.export_onnx = self.model_cfg.get("EXPORT_ONNX",False)
+        self.export_onnx = False
 
         self.forward_ret_dict = {}
         self.build_losses()
@@ -60,11 +61,11 @@ class AnchorFreeSingle(nn.Module):
 
         cls_preds = self.conv_cls(cls_preds)
         box_preds = self.conv_box(box_preds)
-        global ccc
-        if ccc == 0:
-            np.save('./cls_preds.npy', cls_preds.detach().cpu().numpy())
-            np.save('./box_preds.npy', box_preds.detach().cpu().numpy())
-        ccc += 1
+        # global ccc
+        # if ccc == 0:
+        #     np.save('./cls_preds.npy', cls_preds.detach().cpu().numpy())
+        #     np.save('./box_preds.npy', box_preds.detach().cpu().numpy())
+        # ccc += 1
 
         if self.export_onnx:
             data_dict["export_cls_preds"] = cls_preds

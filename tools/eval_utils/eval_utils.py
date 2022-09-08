@@ -7,10 +7,8 @@ import tqdm
 
 from pcdet.models import load_data_to_gpu
 from pcdet.utils import common_utils
-from pcdet.models.dense_heads import AnchorFreeSingle
-from pcdet.models.detectors import CenterPoint
-from pcdet.models.backbones_2d.map_to_bev import PointPillarScatter
-from pcdet.models.backbones_3d.vfe import PillarVFE
+
+
 def statistics_info(cfg, ret_dict, metric, disp_dict):
     for cur_thresh in cfg.MODEL.POST_PROCESSING.RECALL_THRESH_LIST:
         metric['recall_roi_%s' % str(cur_thresh)] += ret_dict.get('roi_%s' % str(cur_thresh), 0)
@@ -20,7 +18,7 @@ def statistics_info(cfg, ret_dict, metric, disp_dict):
     disp_dict['recall_%s' % str(min_thresh)] = \
         '(%d, %d) / %d' % (metric['recall_roi_%s' % str(min_thresh)], metric['recall_rcnn_%s' % str(min_thresh)], metric['gt_num'])
 
-count = 0
+
 def eval_one_epoch(cfg, model, dataloader, epoch_id, logger, dist_test=False, save_to_file=False, result_dir=None):
     result_dir.mkdir(parents=True, exist_ok=True)
 
@@ -48,126 +46,15 @@ def eval_one_epoch(cfg, model, dataloader, epoch_id, logger, dist_test=False, sa
                 device_ids=[local_rank],
                 broadcast_buffers=False
         )
-    model[0].eval()
-    model[1].eval()
+    model.eval()
+
     if cfg.LOCAL_RANK == 0:
         progress_bar = tqdm.tqdm(total=len(dataloader), leave=True, desc='eval', dynamic_ncols=True)
     start_time = time.time()
     for i, batch_dict in enumerate(dataloader):
         load_data_to_gpu(batch_dict)
-        # print('data123', data)
-        # if i == 200:
-        #     break
-        Vfe = PillarVFE(model_cfg=cfg.MODEL, num_point_features=4, voxel_size=[0.16, 0.16, 4],
-                      point_cloud_range=dataloader.dataset.point_cloud_range)
-        voxel_size = [0.16, 0.16, 4]
-        point_cloud_range = dataloader.dataset.point_cloud_range
-        x_offset = voxel_size[0] / 2 + point_cloud_range[0]
-        y_offset = voxel_size[1] / 2 + point_cloud_range[1]
-        z_offset = voxel_size[2] / 2 + point_cloud_range[2]
-        voxel_features, voxel_num_points, coords = batch_dict['voxels'], batch_dict['voxel_num_points'], batch_dict[
-            'voxel_coords']
-        maxnum = 8694
-        cur_num = voxel_features.shape[0]
-        assert maxnum >= cur_num
-        temp = torch.zeros([maxnum - voxel_features.shape[0], voxel_features.shape[1], voxel_features.shape[2]]).cuda()
-        voxel_features = torch.cat((voxel_features, temp), dim=0)
-        temp = torch.zeros([maxnum - voxel_num_points.shape[0]]).cuda()
-        voxel_num_points = torch.cat((voxel_num_points, temp), dim=0)
-        temp = torch.zeros([maxnum - coords.shape[0], coords.shape[1]]).cuda()
-        coords = torch.cat((coords, temp), dim=0)
-        batch_dict['voxels'] = voxel_features
-        batch_dict['voxel_num_points'] = voxel_num_points
-        batch_dict['voxel_coords'] = coords
-        points_mean = voxel_features[:, :, :3].sum(dim=1, keepdim=True) / (voxel_num_points.type_as(voxel_features).view(
-            -1, 1, 1) + 0.00001)
-        f_cluster = voxel_features[:, :, :3] - points_mean
-
-        f_center = torch.zeros_like(voxel_features[:, :, :3])
-        f_center[:, :, 0] = voxel_features[:, :, 0] - (
-                coords[:, 3].to(voxel_features.dtype).unsqueeze(1) * voxel_size[0] + x_offset)
-        f_center[:, :, 1] = voxel_features[:, :, 1] - (
-                coords[:, 2].to(voxel_features.dtype).unsqueeze(1) * voxel_size[1] + y_offset)
-        f_center[:, :, 2] = voxel_features[:, :, 2] - (
-                coords[:, 1].to(voxel_features.dtype).unsqueeze(1) * voxel_size[2] + z_offset)
-
-        features = [voxel_features, f_cluster, f_center]
-        features = torch.cat(features, dim=-1)
-
-        voxel_count = features.shape[1]
-        mask = Vfe.get_paddings_indicator(voxel_num_points, voxel_count, axis=0)
-        mask = torch.unsqueeze(mask, -1).type_as(voxel_features)
-        weight = torch.Tensor(
-            [1 / 70, 1 / 80, 1 / 4, 1.0, 1 / 0.32, 1 / 0.32, 1 / 8, 1 / 0.16, 1 / 0.16, 1 / 4]).cuda().view(1, 1, -1)
-        bias = torch.Tensor([-0.5, 0.0, 0.25, -0.5, 0, 0, 0, 0, 0, 0]).cuda().view(1, 1, -1)
-        features = features * weight + bias
-        features *= mask
-        features[cur_num:, :, :] = 0.0
-        features = features.permute(2, 0, 1)
-        features = features.unsqueeze(dim=0)
-        # import pdb
-        # pdb.set_trace()
-        # datalist1.append(features.detach().cpu())
-        # np.save("./bin/"+str(i)+".npy",data['img'])
-        # import pdb;
-        # pdb.set_trace()
-        # datalist.append((list(torch.from_numpy(data['bev_map'])), 1))
-    # for i, batch_dict in enumerate(dataloader): # 0~3769
-    #     load_data_to_gpu(batch_dict)
-        # datalist.append(batch_dict['bev_map'])
-
-        AnchorFreeHead = AnchorFreeSingle(model_cfg=cfg.MODEL, input_channels=64, num_class=len(cfg.CLASS_NAMES),
-                             class_names=cfg.CLASS_NAMES, grid_size=dataloader.dataset.grid_size,
-                             point_cloud_range=dataloader.dataset.point_cloud_range)
-        Detector = CenterPoint(model_cfg=cfg.MODEL, num_class=len(cfg.CLASS_NAMES), dataset=dataloader.dataset)
-        Maptobev = PointPillarScatter(model_cfg=cfg.MODEL, grid_size=dataloader.dataset.grid_size)
         with torch.no_grad():
-
-            # pred_dicts, ret_dict = model(batch_dict)
-
-            features = model[0]([features])
-            # import pdb
-            # pdb.set_trace()
-            features = features.squeeze(dim=0)
-            features = features.permute(1, 2, 0)
-            features = features.squeeze()
-            # features = features.squeeze()
-            # import pdb
-            # pdb.set_trace()
-            batch_dict['pillar_features'] = features
-            batch_dict =  Maptobev(batch_dict)
-            # global count
-            #
-            # import skimage
-            # jpg = batch_dict['spatial_features'].detach().cpu()[0].abs().sum(0).numpy()
-            # print('-----------------------', jpg.min(), jpg.max())
-            # jpg = ((jpg - jpg.min()) / (jpg.max() - jpg.min()) * 255 ).astype(np.ubyte)
-            # # jpg = jpg.transpose(1,2,0)
-            # skimage.io.imsave('./bev_%d.jpg' % count, jpg)
-            # count += 1
-            # import pdb
-            # pdb.set_trace()
-            # cls_preds,box_preds = model[1]([batch_dict['bev_map']])
-            # spatial_features = batch_dict['spatial_features']
-
-            # spatial_features = np.load('./feat.npy')
-            # spatial_features = torch.from_numpy(spatial_features).cuda()
-            # batch_dict['spatial_features'] = spatial_features
-
-            cls_preds, box_preds = model[1]([batch_dict['spatial_features']] )
-
-            # cls_preds = np.load('./cls_preds.npy')
-            # cls_preds = torch.from_numpy(cls_preds).cuda()
-            # box_preds = np.load('./box_preds.npy')
-            # box_preds = torch.from_numpy(box_preds).cuda()
-
-            pred_dicts = AnchorFreeHead.generate_predicted_boxes( batch_dict['batch_size'], cls_preds, box_preds)
-            # print(pred_dicts)
-            data_dict =batch_dict
-            data_dict['final_box_dicts']=pred_dicts
-            pred_dicts, ret_dict = Detector.post_processing(data_dict)
-
-
+            pred_dicts, ret_dict = model(batch_dict)
         disp_dict = {}
 
         statistics_info(cfg, ret_dict, metric, disp_dict)
@@ -219,6 +106,7 @@ def eval_one_epoch(cfg, model, dataloader, epoch_id, logger, dist_test=False, sa
 
     with open(result_dir / 'result.pkl', 'wb') as f:
         pickle.dump(det_annos, f)
+
     result_str, result_dict = dataset.evaluation(
         det_annos, class_names,
         eval_metric=cfg.MODEL.POST_PROCESSING.EVAL_METRIC,

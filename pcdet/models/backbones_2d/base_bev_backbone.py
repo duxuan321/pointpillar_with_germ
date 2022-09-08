@@ -2,7 +2,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-count=0
 class BaseBEVBackbone(nn.Module):
     def __init__(self, model_cfg, input_channels):
         super().__init__()
@@ -86,8 +85,6 @@ class BaseBEVBackbone(nn.Module):
         Returns:
         """
         spatial_features = data_dict['spatial_features']
-        # import pdb
-        # pdb.set_trace()
         ups = []
         ret_dict = {}
         x = spatial_features
@@ -110,6 +107,4 @@ class BaseBEVBackbone(nn.Module):
             x = self.deblocks[-1](x)
 
         data_dict['spatial_features_2d'] = x
-        # import pdb
-        # pdb.set_trace()
         return data_dict
