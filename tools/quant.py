@@ -190,7 +190,7 @@ def main():
                                 output_dir=work_dir + '/ir_output_pfn', input_vars=datalist1[0], enable_equalization=True)
 
     run_compiler(input_dir=work_dir + '/ir_output_pfn', output_dir=work_dir + '/compiler_output_pfn',
-                 enable_cmodel=True, enable_rtl_model=True, enable_profiler=False)
+                 enable_cmodel=True, enable_rtl_model=True, enable_profiler=True)
 
     datalist2 = []
     quant_model = QuantModel(model, quant_model1)
@@ -208,7 +208,7 @@ def main():
                                 output_dir=work_dir + '/ir_output_backbone2d', input_vars=datalist2[0], enable_equalization=True)
 
     run_compiler(input_dir=work_dir + '/ir_output_backbone2d', output_dir=work_dir + '/compiler_output_backbone2d',
-                 enable_cmodel=True, enable_rtl_model=True, enable_profiler=False)
+                 enable_cmodel=True, enable_rtl_model=True, enable_profiler=True)
 
     quant_model = QuantModel(model, quant_model1, quant_model2)
     with torch.no_grad():
