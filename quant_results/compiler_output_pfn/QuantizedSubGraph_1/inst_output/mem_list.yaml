@@ -1,0 +1,63 @@
+- name: Input_1
+  release:
+  - addr: 1048576
+    name: Input_1
+    size: 5120000
+    waiting: 1
+- name: Conv2d_2
+  wait:
+  - name: Input_1
+    size: 5120000
+    can_free: 1
+    addr: 1048576
+  release:
+  - name: Conv2d_2
+    size: 32768000
+    waiting: 1
+    addr: 6168576
+  param:
+  - name: Conv2d_2_weight
+    size: 640
+    addr: 0
+  - name: Conv2d_2_bias
+    size: 128
+    addr: 640
+  - name: Conv2d_2_offset
+    size: 64
+    addr: 768
+  - name: Conv2d_2_bias_offset
+    size: 64
+    addr: 832
+- name: MaxPool2d_1
+  wait:
+  - name: Conv2d_2
+    size: 32768000
+    can_free: 1
+    addr: 6168576
+  release:
+  - name: MaxPool2d_1
+    size: 8192000
+    waiting: 1
+    addr: 38936576
+- name: MaxPool2d_2
+  wait:
+  - name: MaxPool2d_1
+    size: 8192000
+    can_free: 1
+    addr: 38936576
+  release:
+  - name: MaxPool2d_2
+    size: 2048000
+    waiting: 1
+    addr: 0
+- name: MaxPool2d_3
+  wait:
+  - name: MaxPool2d_2
+    size: 2048000
+    can_free: 1
+    addr: 0
+  release:
+  - name: MaxPool2d_3
+    size: 1024000
+    waiting: 0
+    addr: 2048000

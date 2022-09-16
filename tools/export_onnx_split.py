@@ -1,4 +1,4 @@
-import _init_path
+# import _init_path
 import argparse
 import datetime
 import glob
@@ -137,6 +137,8 @@ def main():
     else:
         eval_output_dir = eval_output_dir / 'eval_all_default'
 
+    print(output_dir)
+
     if args.eval_tag is not None:
         eval_output_dir = eval_output_dir / args.eval_tag
 
@@ -189,6 +191,7 @@ def main():
     batch_dict.pop('voxels')
     data_dict_info.update(batch_dict)
 
+    # bev_features = torch.ones((1, 64, 1008, 1008), dtype=torch.float32).cuda() # 需要根据后期的特征图调整这里的尺寸
     bev_features = torch.ones((1, 64, 496, 432), dtype=torch.float32).cuda()
     with torch.no_grad():
         export_model_part1.eval()

@@ -171,7 +171,7 @@ def main():
     model.cuda()
     model.eval()
 
-    work_dir = '../quant_results'
+    work_dir = '../quant_results_benewake_pillar'
     os.makedirs(work_dir, exist_ok=True)
     onnx_dir = cfg.ROOT_DIR / 'output' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
 
@@ -189,8 +189,8 @@ def main():
     quant_model1 = run_quantizer(onnx_model1, dataloader=datalist1, num_batches=200,
                                 output_dir=work_dir + '/ir_output_pfn', input_vars=datalist1[0], enable_equalization=True)
 
-    run_compiler(input_dir=work_dir + '/ir_output_pfn', output_dir=work_dir + '/compiler_output_pfn',
-                 enable_cmodel=True, enable_rtl_model=True, enable_profiler=True)
+    # run_compiler(input_dir=work_dir + '/ir_output_pfn', output_dir=work_dir + '/compiler_output_pfn',
+    #              enable_cmodel=True, enable_rtl_model=True, enable_profiler=True)
 
     datalist2 = []
     quant_model = QuantModel(model, quant_model1)
@@ -207,8 +207,8 @@ def main():
     quant_model2 = run_quantizer(onnx_model2, dataloader=datalist2, num_batches=200,
                                 output_dir=work_dir + '/ir_output_backbone2d', input_vars=datalist2[0], enable_equalization=True)
 
-    run_compiler(input_dir=work_dir + '/ir_output_backbone2d', output_dir=work_dir + '/compiler_output_backbone2d',
-                 enable_cmodel=True, enable_rtl_model=True, enable_profiler=True)
+    # run_compiler(input_dir=work_dir + '/ir_output_backbone2d', output_dir=work_dir + '/compiler_output_backbone2d',
+    #              enable_cmodel=True, enable_rtl_model=True, enable_profiler=True)
 
     quant_model = QuantModel(model, quant_model1, quant_model2)
     with torch.no_grad():

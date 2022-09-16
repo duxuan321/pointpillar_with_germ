@@ -67,3 +67,11 @@ DATA_PROCESSOR:
         'train': 16000,
         'test': 40000
       }
+
+    - NAME: transform_voxels_for_pointpillars
+      WITH_DISTANCE: False
+      USE_ABSLOTE_XYZ: True
+      USE_NORM: True
+      MAX_NUMBER_OF_VOXELS: 16000
+      ALIGN: True
+

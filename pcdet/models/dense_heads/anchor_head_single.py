@@ -53,7 +53,7 @@ class AnchorHeadSingle(AnchorHeadTemplate):
             dir_cls_preds = self.conv_dir_cls(spatial_features_2d)
             if self.export_onnx:
                 data_dict["export_dir_cls_preds"] = dir_cls_preds
-                return data_dict
+                return data_dict # 这里return了，没有换维操作了，所以在导出结果后需要加forward_quant
             dir_cls_preds = dir_cls_preds.permute(0, 2, 3, 1).contiguous()
             self.forward_ret_dict['dir_cls_preds'] = dir_cls_preds
         else:

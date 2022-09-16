@@ -1,0 +1,7 @@
+##############################
+Statistical Analysis of Computation
+------------------------------
+layer_name   layer_type  layer_operations/GOPs  layer_time/ms  utilization/%  
+Conv2d_2     conv        0.69                   20.93          8.03           
+------------------------------------------------------------------------------
+TOTAL                    0.69                   73.99          2.27           

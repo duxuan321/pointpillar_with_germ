@@ -1,0 +1,72 @@
+input_info:
+- name: Input_1
+  shape:
+  - 16000
+  - 32
+  - 10
+  type: int8
+  scale: 0.003921752329915762
+  addr: 1048576
+output_info:
+- name: MaxPool2d_3
+  shape:
+  - 16000
+  - 1
+  - 64
+  type: uint8
+  scale: 0.034561142325401306
+  addr: 2048000
+hardware_config:
+  DEV_MODE: false
+  ARCH: N1
+  ARCH_FULL: N1-816-F
+  CONFIG_BANK_DEPTH: 2048
+  CONFIG_INPUT_PARALLEL: 8
+  CONFIG_WEIGHTS_PARALLEL: 16
+  CONFIG_OUTPUT_PARALLEL: 16
+  CONFIG_COMPUT_PARALLEL: 4096
+  BANK_GROUP_FMP: 3
+  BANK_NUM_FMP: 8
+  BANK_DEPTH_FMP: 2048
+  BANK_WIDTH_FMP: 16
+  BANK_NUM_WEIGHTS: 17
+  BANK_DEPTH_WEIGHTS: 2048
+  BANK_WIDTH_WEIGHTS: 16
+  BANK_NUM_BIAS: 2
+  BANK_DEPTH_BIAS: 256
+  BANK_WIDTH_BIAS: 16
+  BANK_NUM_OFFSET: 4
+  BANK_DEPTH_OFFSET: 256
+  BANK_WIDTH_OFFSET: 16
+  ALIGNMENT: 4
+  ALIGNMENT_TXT: 32
+  CLOCK_RATE: 100
+  TIME_PER_CYCLE: 10.0
+  LS_BITWIDTH: 256
+  LS_BANDWIDTH: 3.2
+  EXT_SRAM_SIZE: 1024
+  MAX_DDR_SIZE: 1048576
+profile_addr:
+  profile_syst_addr_base: 49586336
+  profile_load_addr_base: 49586344
+  profile_save_addr_base: 50098880
+  profile_conv_addr_base: 50610880
+  profile_misc_addr_base: 50626888
+memory_usage_info:
+  total_ddr_size_B: 51010912
+  total_ddr_size_KB: 49815.34375
+  total_ddr_size_%: 100
+  total_wgt_size_B: 896
+  total_wgt_size_KB: 0.875
+  total_wgt_size_%: 0.001756486925777763
+  total_inst_size_B: 2456864
+  total_inst_size_KB: 2399.28125
+  total_inst_size_%: 4.816349882158547
+  total_io_size_B: 47128576
+  total_io_size_KB: 46024.0
+  total_io_size_%: 92.38920488228088
+addr_config:
+  total_ddr_size: 51010912
+  io_addr_base: 0
+  wgt_addr_base: 47128576
+  inst_addr_base: 47129472

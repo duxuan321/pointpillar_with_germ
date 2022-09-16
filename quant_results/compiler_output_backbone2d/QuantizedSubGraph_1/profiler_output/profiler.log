@@ -1,0 +1,30 @@
+##############################
+Statistical Analysis of Computation
+------------------------------
+layer_name             layer_type  layer_operations/GOPs  layer_time/ms  utilization/%  
+Conv2d_22              conv        3.95                   10.83          89.1           
+Conv2d_23              conv        3.95                   9.85           97.94          
+Conv2d_24              conv        3.95                   9.83           98.16          
+Conv2d_25              conv        3.95                   9.86           97.92          
+ConvTranspose2d_4_pre  conv        0.44                   2.38           44.95          
+ConvTranspose2d_4      conv        0.88                   4.59           47.02          
+Conv2d_26              conv        1.98                   5.26           91.77          
+Conv2d_27              conv        3.95                   10.24          94.19          
+Conv2d_28              conv        3.95                   10.22          94.39          
+Conv2d_29              conv        3.95                   10.24          94.19          
+Conv2d_30              conv        3.95                   10.22          94.39          
+Conv2d_31              conv        3.95                   10.24          94.18          
+ConvTranspose2d_5_pre  conv        0.22                   1.65           32.4           
+ConvTranspose2d_5      conv        7.03                   17.57          97.67          
+Conv2d_32              conv        1.98                   5.48           88.0           
+Conv2d_33              conv        3.95                   10.71          90.02          
+Conv2d_34              conv        3.95                   10.68          90.32          
+Conv2d_35              conv        3.95                   10.67          90.41          
+Conv2d_36              conv        3.95                   10.68          90.32          
+Conv2d_37              conv        0.99                   10.84          22.24          
+ConvTranspose2d_6      conv        56.18                  138.04         99.35          
+Conv2d_19              conv        0.74                   13.94          12.98          
+Conv2d_20              conv        1.73                   14.0           30.17          
+Conv2d_21              conv        0.49                   13.84          8.72           
+----------------------------------------------------------------------------------------
+TOTAL                              124.02                 361.88         83.67          

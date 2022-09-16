@@ -1,0 +1,88 @@
+input_info:
+- name: Input_2
+  shape:
+  - 496
+  - 432
+  - 64
+  type: uint8
+  scale: 0.034561146050691605
+  addr: 1048576
+output_info:
+- name: Conv2d_19
+  shape:
+  - 248
+  - 216
+  - 18
+  type: int8
+  scale: 0.12338300049304962
+  addr: 1048576
+- name: Conv2d_20
+  shape:
+  - 248
+  - 216
+  - 42
+  type: int8
+  scale: 0.012211824767291546
+  addr: 2012800
+- name: Conv2d_21
+  shape:
+  - 248
+  - 216
+  - 12
+  type: int8
+  scale: 0.03938900679349899
+  addr: 4262656
+hardware_config:
+  DEV_MODE: false
+  ARCH: N1
+  ARCH_FULL: N1-816-F
+  CONFIG_BANK_DEPTH: 2048
+  CONFIG_INPUT_PARALLEL: 8
+  CONFIG_WEIGHTS_PARALLEL: 16
+  CONFIG_OUTPUT_PARALLEL: 16
+  CONFIG_COMPUT_PARALLEL: 4096
+  BANK_GROUP_FMP: 3
+  BANK_NUM_FMP: 8
+  BANK_DEPTH_FMP: 2048
+  BANK_WIDTH_FMP: 16
+  BANK_NUM_WEIGHTS: 17
+  BANK_DEPTH_WEIGHTS: 2048
+  BANK_WIDTH_WEIGHTS: 16
+  BANK_NUM_BIAS: 2
+  BANK_DEPTH_BIAS: 256
+  BANK_WIDTH_BIAS: 16
+  BANK_NUM_OFFSET: 4
+  BANK_DEPTH_OFFSET: 256
+  BANK_WIDTH_OFFSET: 16
+  ALIGNMENT: 4
+  ALIGNMENT_TXT: 32
+  CLOCK_RATE: 100
+  TIME_PER_CYCLE: 10.0
+  LS_BITWIDTH: 256
+  LS_BANDWIDTH: 3.2
+  EXT_SRAM_SIZE: 1024
+  MAX_DDR_SIZE: 1048576
+profile_addr:
+  profile_syst_addr_base: 32812992
+  profile_load_addr_base: 32813000
+  profile_save_addr_base: 32965544
+  profile_conv_addr_base: 33075656
+  profile_misc_addr_base: 33090176
+memory_usage_info:
+  total_ddr_size_B: 33090176
+  total_ddr_size_KB: 32314.625
+  total_ddr_size_%: 100
+  total_wgt_size_B: 4859968
+  total_wgt_size_KB: 4746.0625
+  total_wgt_size_%: 14.68704185798226
+  total_inst_size_B: 526208
+  total_inst_size_KB: 513.875
+  total_inst_size_%: 1.5902242405721867
+  total_io_size_B: 27426816
+  total_io_size_KB: 26784.0
+  total_io_size_%: 82.88507138795515
+addr_config:
+  total_ddr_size: 33090176
+  io_addr_base: 0
+  wgt_addr_base: 27426816
+  inst_addr_base: 32286784

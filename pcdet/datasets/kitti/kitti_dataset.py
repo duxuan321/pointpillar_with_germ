@@ -62,6 +62,7 @@ class KittiDataset(DatasetTemplate):
         split_dir = self.root_path / 'ImageSets' / (self.split + '.txt')
         self.sample_id_list = [x.strip() for x in open(split_dir).readlines()] if split_dir.exists() else None
 
+
     def get_lidar(self, idx):
         lidar_file = self.root_split_path / 'velodyne' / ('%s.bin' % idx)
         assert lidar_file.exists()
@@ -84,7 +85,9 @@ class KittiDataset(DatasetTemplate):
         return image
 
     def get_image_shape(self, idx):
+        # kitti
         img_file = self.root_split_path / 'image_2' / ('%s.png' % idx)
+        # benewake
         # img_file = self.root_split_path / 'image_2' / '000000.png'
         # print(img_file)
         assert img_file.exists()
@@ -112,7 +115,9 @@ class KittiDataset(DatasetTemplate):
         return depth
 
     def get_calib(self, idx):
+        # kitti
         calib_file = self.root_split_path / 'calib' / ('%s.txt' % idx)
+        # benewake
         # calib_file = self.root_split_path / 'calib' / '000000.txt'
         assert calib_file.exists()
         return calibration_kitti.Calibration(calib_file)
@@ -429,7 +434,7 @@ class KittiDataset(DatasetTemplate):
                 boxes_lidar = eval_det['gt_boxes_lidar']
                 box_names = eval_det['name']
                 for i, cls_name in enumerate(box_names):
-                    if cls_name == 'Car' or cls_name == 'Cyclist' or cls_name == 'Pedestrian' or cls_name == 'Tricyclist':
+                    if cls_name == 'Car' or cls_name == 'Cyclist' or cls_name == 'Pedestrian' or cls_name == 'Tricyclist' or cls_name == 'Van' or cls_name == 'Bus':
                     #if cls_name == 'Car' or cls_name == 'Cyclist':
                         if boxes_lidar[i][0] > self.point_cloud_range[3] or boxes_lidar[i][1] > self.point_cloud_range[4] or boxes_lidar[i][1]<self.point_cloud_range[1]:
                             continue
@@ -552,7 +557,7 @@ class KittiDataset(DatasetTemplate):
 
         if "calib_matricies" in get_item_list:
             input_dict["trans_lidar_to_cam"], input_dict["trans_cam_to_img"] = kitti_utils.calib_to_matricies(calib)
-
+        
         data_dict = self.prepare_data(data_dict=input_dict)
 
         data_dict['image_shape'] = img_shape
@@ -619,10 +624,11 @@ if __name__ == '__main__':
         from easydict import EasyDict
         dataset_cfg = EasyDict(yaml.safe_load(open(sys.argv[2])))
         #ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
-        ROOT_DIR = Path("/home/yantingxin/workspace/dataset/kitti_tanway")
+        ROOT_DIR = Path("/home/jinyuanyun/npu/benewake/kitti")
         create_kitti_infos(
             dataset_cfg=dataset_cfg,
-            class_names=['Car', 'Pedestrian', 'Cyclist'],
+            # class_names=['Car', 'Pedestrian', 'Cyclist'],
+            class_names = ['Car', 'Bus', 'Van', 'Tricyclist', 'Cyclist', 'Pedestrian'],
             # data_path=ROOT_DIR / 'data' / 'kitti',
             # save_path=ROOT_DIR / 'data' / 'kitti'
             data_path=ROOT_DIR ,

@@ -11,6 +11,7 @@ pcdet.egg-info/requires.txt
 pcdet.egg-info/top_level.txt
 pcdet/datasets/__init__.py
 pcdet/datasets/common_3d_ap.py
+pcdet/datasets/common_3d_ap1.py
 pcdet/datasets/dataset.py
 pcdet/datasets/augmentor/__init__.py
 pcdet/datasets/augmentor/augmentor_utils.py
@@ -18,6 +19,7 @@ pcdet/datasets/augmentor/data_augmentor.py
 pcdet/datasets/augmentor/database_sampler.py
 pcdet/datasets/kitti/__init__.py
 pcdet/datasets/kitti/kitti_dataset.py
+pcdet/datasets/kitti/kitti_dataset1.py
 pcdet/datasets/kitti/kitti_utils.py
 pcdet/datasets/kitti/kitti_object_eval_python/__init__.py
 pcdet/datasets/kitti/kitti_object_eval_python/eval.py
@@ -61,6 +63,7 @@ pcdet/models/backbones_3d/vfe/dynamic_pillar_vfe.py
 pcdet/models/backbones_3d/vfe/image_vfe.py
 pcdet/models/backbones_3d/vfe/mean_vfe.py
 pcdet/models/backbones_3d/vfe/pillar_vfe.py
+pcdet/models/backbones_3d/vfe/pillar_vfe_origin.py
 pcdet/models/backbones_3d/vfe/placeholder.py
 pcdet/models/backbones_3d/vfe/vfe_template.py
 pcdet/models/backbones_3d/vfe/image_vfe_modules/__init__.py

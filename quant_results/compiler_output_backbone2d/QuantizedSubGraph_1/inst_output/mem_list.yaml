@@ -1,0 +1,553 @@
+- name: Input_2
+  release:
+  - addr: 1048576
+    name: Input_2
+    size: 13713408
+    waiting: 1
+- name: Conv2d_22
+  wait:
+  - name: Input_2
+    size: 13713408
+    can_free: 1
+    addr: 1048576
+  release:
+  - name: Conv2d_22
+    size: 3428352
+    waiting: 1
+    addr: 14761984
+  param:
+  - name: Conv2d_22_weight
+    size: 36864
+    addr: 0
+  - name: Conv2d_22_bias
+    size: 128
+    addr: 36864
+  - name: Conv2d_22_offset
+    size: 64
+    addr: 36992
+- name: Conv2d_23
+  wait:
+  - name: Conv2d_22
+    size: 3428352
+    can_free: 1
+    addr: 14761984
+  release:
+  - name: Conv2d_23
+    size: 3428352
+    waiting: 1
+    addr: 0
+  param:
+  - name: Conv2d_23_weight
+    size: 36864
+    addr: 37056
+  - name: Conv2d_23_bias
+    size: 128
+    addr: 73920
+- name: Conv2d_24
+  wait:
+  - name: Conv2d_23
+    size: 3428352
+    can_free: 1
+    addr: 0
+  release:
+  - name: Conv2d_24
+    size: 3428352
+    waiting: 1
+    addr: 3428352
+  param:
+  - name: Conv2d_24_weight
+    size: 36864
+    addr: 74048
+  - name: Conv2d_24_bias
+    size: 128
+    addr: 110912
+  - name: Conv2d_24_bias_offset
+    size: 64
+    addr: 111040
+- name: Conv2d_25
+  wait:
+  - name: Conv2d_24
+    size: 3428352
+    can_free: 1
+    addr: 3428352
+  release:
+  - name: Conv2d_25
+    size: 3428352
+    waiting: 2
+    addr: 0
+  param:
+  - name: Conv2d_25_weight
+    size: 36864
+    addr: 111104
+  - name: Conv2d_25_bias
+    size: 128
+    addr: 147968
+  - name: Conv2d_25_offset
+    size: 64
+    addr: 148096
+  - name: Conv2d_25_bias_offset
+    size: 64
+    addr: 148160
+- name: ConvTranspose2d_4_pre
+  wait:
+  - name: Conv2d_25
+    size: 3428352
+    can_free: 0
+    addr: 0
+  release:
+  - name: ConvTranspose2d_4_pre
+    size: 3428352
+    waiting: 1
+    addr: 3428352
+  param:
+  - name: ConvTranspose2d_4_pre_weight
+    size: 4096
+    addr: 148224
+- name: ConvTranspose2d_4
+  wait:
+  - name: ConvTranspose2d_4_pre
+    size: 3428352
+    can_free: 1
+    addr: 3428352
+  release:
+  - name: ConvTranspose2d_4
+    size: 6856704
+    waiting: 1
+    addr: 6856704
+  param:
+  - name: ConvTranspose2d_4_weight
+    size: 8192
+    addr: 152320
+  - name: ConvTranspose2d_4_bias
+    size: 256
+    addr: 160512
+  - name: ConvTranspose2d_4_offset
+    size: 128
+    addr: 160768
+- name: Conv2d_26
+  wait:
+  - name: Conv2d_25
+    size: 3428352
+    can_free: 1
+    addr: 0
+  release:
+  - name: Conv2d_26
+    size: 1714176
+    waiting: 1
+    addr: 3428352
+  param:
+  - name: Conv2d_26_weight
+    size: 73728
+    addr: 160896
+  - name: Conv2d_26_bias
+    size: 256
+    addr: 234624
+  - name: Conv2d_26_offset
+    size: 128
+    addr: 234880
+- name: Conv2d_27
+  wait:
+  - name: Conv2d_26
+    size: 1714176
+    can_free: 1
+    addr: 3428352
+  release:
+  - name: Conv2d_27
+    size: 1714176
+    waiting: 1
+    addr: 0
+  param:
+  - name: Conv2d_27_weight
+    size: 147456
+    addr: 235008
+  - name: Conv2d_27_bias
+    size: 256
+    addr: 382464
+  - name: Conv2d_27_bias_offset
+    size: 128
+    addr: 382720
+- name: Conv2d_28
+  wait:
+  - name: Conv2d_27
+    size: 1714176
+    can_free: 1
+    addr: 0
+  release:
+  - name: Conv2d_28
+    size: 1714176
+    waiting: 1
+    addr: 1714176
+  param:
+  - name: Conv2d_28_weight
+    size: 147456
+    addr: 382848
+  - name: Conv2d_28_bias
+    size: 256
+    addr: 530304
+  - name: Conv2d_28_offset
+    size: 128
+    addr: 530560
+  - name: Conv2d_28_bias_offset
+    size: 128
+    addr: 530688
+- name: Conv2d_29
+  wait:
+  - name: Conv2d_28
+    size: 1714176
+    can_free: 1
+    addr: 1714176
+  release:
+  - name: Conv2d_29
+    size: 1714176
+    waiting: 1
+    addr: 0
+  param:
+  - name: Conv2d_29_weight
+    size: 147456
+    addr: 530816
+  - name: Conv2d_29_bias
+    size: 256
+    addr: 678272
+  - name: Conv2d_29_bias_offset
+    size: 128
+    addr: 678528
+- name: Conv2d_30
+  wait:
+  - name: Conv2d_29
+    size: 1714176
+    can_free: 1
+    addr: 0
+  release:
+  - name: Conv2d_30
+    size: 1714176
+    waiting: 1
+    addr: 1714176
+  param:
+  - name: Conv2d_30_weight
+    size: 147456
+    addr: 678656
+  - name: Conv2d_30_bias
+    size: 256
+    addr: 826112
+  - name: Conv2d_30_offset
+    size: 128
+    addr: 826368
+  - name: Conv2d_30_bias_offset
+    size: 128
+    addr: 826496
+- name: Conv2d_31
+  wait:
+  - name: Conv2d_30
+    size: 1714176
+    can_free: 1
+    addr: 1714176
+  release:
+  - name: Conv2d_31
+    size: 1714176
+    waiting: 2
+    addr: 0
+  param:
+  - name: Conv2d_31_weight
+    size: 147456
+    addr: 826624
+  - name: Conv2d_31_bias
+    size: 256
+    addr: 974080
+  - name: Conv2d_31_offset
+    size: 128
+    addr: 974336
+  - name: Conv2d_31_bias_offset
+    size: 128
+    addr: 974464
+- name: ConvTranspose2d_5_pre
+  wait:
+  - name: Conv2d_31
+    size: 1714176
+    can_free: 0
+    addr: 0
+  release:
+  - name: ConvTranspose2d_5_pre
+    size: 3412480
+    waiting: 1
+    addr: 1714176
+  param:
+  - name: ConvTranspose2d_5_pre_weight
+    size: 16384
+    addr: 974592
+- name: ConvTranspose2d_5
+  wait:
+  - name: ConvTranspose2d_5_pre
+    size: 3412480
+    can_free: 1
+    addr: 1714176
+  release:
+  - name: ConvTranspose2d_5
+    size: 6856704
+    waiting: 1
+    addr: 6856704
+  param:
+  - name: ConvTranspose2d_5_weight
+    size: 65536
+    addr: 990976
+  - name: ConvTranspose2d_5_bias
+    size: 256
+    addr: 1056512
+  - name: ConvTranspose2d_5_offset
+    size: 128
+    addr: 1056768
+  - name: ConvTranspose2d_5_bias_offset
+    size: 128
+    addr: 1056896
+- name: Conv2d_32
+  wait:
+  - name: Conv2d_31
+    size: 1714176
+    can_free: 1
+    addr: 0
+  release:
+  - name: Conv2d_32
+    size: 857088
+    waiting: 1
+    addr: 1714176
+  param:
+  - name: Conv2d_32_weight
+    size: 294912
+    addr: 1057024
+  - name: Conv2d_32_bias
+    size: 512
+    addr: 1351936
+  - name: Conv2d_32_offset
+    size: 256
+    addr: 1352448
+  - name: Conv2d_32_bias_offset
+    size: 256
+    addr: 1352704
+- name: Conv2d_33
+  wait:
+  - name: Conv2d_32
+    size: 857088
+    can_free: 1
+    addr: 1714176
+  release:
+  - name: Conv2d_33
+    size: 857088
+    waiting: 1
+    addr: 0
+  param:
+  - name: Conv2d_33_weight
+    size: 589824
+    addr: 1352960
+  - name: Conv2d_33_bias
+    size: 512
+    addr: 1942784
+  - name: Conv2d_33_offset
+    size: 256
+    addr: 1943296
+  - name: Conv2d_33_bias_offset
+    size: 256
+    addr: 1943552
+- name: Conv2d_34
+  wait:
+  - name: Conv2d_33
+    size: 857088
+    can_free: 1
+    addr: 0
+  release:
+  - name: Conv2d_34
+    size: 857088
+    waiting: 1
+    addr: 857088
+  param:
+  - name: Conv2d_34_weight
+    size: 589824
+    addr: 1943808
+  - name: Conv2d_34_bias
+    size: 512
+    addr: 2533632
+  - name: Conv2d_34_offset
+    size: 256
+    addr: 2534144
+  - name: Conv2d_34_bias_offset
+    size: 256
+    addr: 2534400
+- name: Conv2d_35
+  wait:
+  - name: Conv2d_34
+    size: 857088
+    can_free: 1
+    addr: 857088
+  release:
+  - name: Conv2d_35
+    size: 857088
+    waiting: 1
+    addr: 0
+  param:
+  - name: Conv2d_35_weight
+    size: 589824
+    addr: 2534656
+  - name: Conv2d_35_bias
+    size: 512
+    addr: 3124480
+  - name: Conv2d_35_offset
+    size: 256
+    addr: 3124992
+  - name: Conv2d_35_bias_offset
+    size: 256
+    addr: 3125248
+- name: Conv2d_36
+  wait:
+  - name: Conv2d_35
+    size: 857088
+    can_free: 1
+    addr: 0
+  release:
+  - name: Conv2d_36
+    size: 857088
+    waiting: 1
+    addr: 857088
+  param:
+  - name: Conv2d_36_weight
+    size: 589824
+    addr: 3125504
+  - name: Conv2d_36_bias
+    size: 512
+    addr: 3715328
+  - name: Conv2d_36_offset
+    size: 256
+    addr: 3715840
+  - name: Conv2d_36_bias_offset
+    size: 256
+    addr: 3716096
+- name: Conv2d_37
+  wait:
+  - name: Conv2d_36
+    size: 857088
+    can_free: 1
+    addr: 857088
+  release:
+  - name: Conv2d_37
+    size: 3380736
+    waiting: 1
+    addr: 1714176
+  param:
+  - name: Conv2d_37_weight
+    size: 589824
+    addr: 3716352
+  - name: Conv2d_37_bias
+    size: 512
+    addr: 4306176
+  - name: Conv2d_37_offset
+    size: 256
+    addr: 4306688
+  - name: Conv2d_37_bias_offset
+    size: 256
+    addr: 4306944
+- name: ConvTranspose2d_6
+  wait:
+  - name: Conv2d_37
+    size: 3380736
+    can_free: 1
+    addr: 1714176
+  release:
+  - name: ConvTranspose2d_6
+    size: 6856704
+    waiting: 1
+    addr: 6856704
+  param:
+  - name: ConvTranspose2d_6_weight
+    size: 524288
+    addr: 4307200
+  - name: ConvTranspose2d_6_bias
+    size: 256
+    addr: 4831488
+  - name: ConvTranspose2d_6_offset
+    size: 128
+    addr: 4831744
+  - name: ConvTranspose2d_6_bias_offset
+    size: 128
+    addr: 4831872
+- name: Concat_1
+  wait:
+  - name: ConvTranspose2d_4
+    size: 6856704
+    can_free: 1
+    addr: 6856704
+  - name: ConvTranspose2d_5
+    size: 6856704
+    can_free: 1
+    addr: 6856704
+  - name: ConvTranspose2d_6
+    size: 6856704
+    can_free: 1
+    addr: 6856704
+  release:
+  - name: Concat_1
+    size: 20570112
+    waiting: 3
+    addr: 6856704
+- name: Conv2d_19
+  wait:
+  - name: Concat_1
+    size: 20570112
+    can_free: 0
+    addr: 6856704
+  release:
+  - name: Conv2d_19
+    size: 964224
+    waiting: 0
+    addr: 1048576
+  param:
+  - name: Conv2d_19_weight
+    size: 6912
+    addr: 4832000
+  - name: Conv2d_19_bias
+    size: 48
+    addr: 4838912
+  - name: Conv2d_19_offset
+    size: 32
+    addr: 4838960
+  - name: Conv2d_19_bias_offset
+    size: 32
+    addr: 4838992
+- name: Conv2d_20
+  wait:
+  - name: Concat_1
+    size: 20570112
+    can_free: 0
+    addr: 6856704
+  release:
+  - name: Conv2d_20
+    size: 2249856
+    waiting: 0
+    addr: 2012800
+  param:
+  - name: Conv2d_20_weight
+    size: 16128
+    addr: 4839024
+  - name: Conv2d_20_bias
+    size: 96
+    addr: 4855152
+  - name: Conv2d_20_offset
+    size: 48
+    addr: 4855248
+- name: Conv2d_21
+  wait:
+  - name: Concat_1
+    size: 20570112
+    can_free: 1
+    addr: 6856704
+  release:
+  - name: Conv2d_21
+    size: 642816
+    waiting: 0
+    addr: 4262656
+  param:
+  - name: Conv2d_21_weight
+    size: 4608
+    addr: 4855296
+  - name: Conv2d_21_bias
+    size: 32
+    addr: 4859904
+  - name: Conv2d_21_offset
+    size: 16
+    addr: 4859936
