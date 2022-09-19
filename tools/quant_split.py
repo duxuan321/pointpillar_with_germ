@@ -89,29 +89,25 @@ def get_no_evaluated_ckpt(ckpt_dir, ckpt_record_file, args):
     return -1, None
 
 class QuantModel(nn.Module):
-    def __init__(self, src_model, quant_model):
+    def __init__(self, src_model, part1, part2=None):
         super().__init__()
         self.model = src_model
-        self.quant_model = quant_model
+        self.part1 = part1
+        self.part2 = part2
 
     def forward(self, batch_dict):
         voxels = batch_dict['voxels']
-        voxel_coords = batch_dict['voxel_coords'][:, 1].view(1, 1, -1).repeat(1, 64, 1)
-        # cls_preds, box_preds, dir_cls_preds = self.quant_model([voxels, voxel_coords])
-        time1 = datetime.datetime.now()
-        cls_preds, box_preds, dir_cls_preds = self.quant_model([voxels, voxel_coords])
-        time2 = datetime.datetime.now()
-        print("quant_model spent time:",(time2 - time1).seconds)
-
+        pillar_features = self.part1([voxels, ])
+        batch_dict.update({'pillar_features': pillar_features})
+        batch_dict = self.model.map_to_bev_module(batch_dict)
+        spatial_features = batch_dict['spatial_features']
+        if self.part2 is None:
+            return spatial_features
+        cls_preds, box_preds, dir_cls_preds = self.part2([spatial_features, ])
         batch_dict.update({'cls_preds': cls_preds, 'box_preds': box_preds, 'dir_cls_preds': dir_cls_preds})
-        # batch_dict.update({'cls_preds': cls_preds, 'box_preds': box_preds})
         batch_dict = self.model.dense_head.forward_quant(batch_dict)
-        time3 = datetime.datetime.now()
-        print("generate boxes spent time:",(time3 - time2).seconds)
 
         pred_dicts, recall_dicts = self.model.post_processing(batch_dict)
-        time4 = datetime.datetime.now()
-        print("post processing spent time:",(time4 - time3).seconds)
         return pred_dicts, recall_dicts
 
 def main():
@@ -175,34 +171,49 @@ def main():
     model.cuda()
     model.eval()
 
-    work_dir = '../quant_results_benewake_pillar'
+    work_dir = '../quant_results'
     os.makedirs(work_dir, exist_ok=True)
     onnx_dir = cfg.ROOT_DIR / 'output' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
 
-    onnx_path = os.path.join(onnx_dir, 'pointpillars_deploy.onnx')
+    onnx_part1_path = os.path.join(onnx_dir, 'deploy_part1.onnx')
+    onnx_part2_path = os.path.join(onnx_dir, 'deploy_part2.onnx')
 
-    # run_compiler(input_dir=work_dir + '/ir_output_pfn', output_dir=work_dir + '/compiler_output_pfn',
-    #              enable_cmodel=True, enable_rtl_model=True, enable_profiler=True)
 
-    datalist = []
+    datalist1 = []
     for i, batch_dict in enumerate(test_loader):
         if i == 200:
             break
-        voxels = torch.from_numpy(batch_dict['voxels']).float()
-        voxel_coords = torch.from_numpy(batch_dict['voxel_coords'][:, 1]).view(1, 1, -1).repeat(1, 64, 1).long()
-        datalist.append([(voxels, voxel_coords), None])
+        datalist1.append(torch.from_numpy(batch_dict['voxels']).float())
 
-    # print(torch.from_numpy(batch_dict['voxel_coords'][:, 1]).view(1, 1, -1).repeat(1, 64, 1).long().shape)
-    onnx_model = onnx.load(onnx_path)
-    quant_model = run_quantizer(onnx_model, dataloader=datalist, num_batches=200,
-                                output_dir=work_dir + '/ir_output_pfn',device='cuda:0', input_vars=datalist[0][0], enable_equalization=True)
+    onnx_model1 = onnx.load(onnx_part1_path)
+    quant_model1 = run_quantizer(onnx_model1, dataloader=datalist1, num_batches=200,
+                                output_dir=work_dir + '/ir_output_pfn', input_vars=datalist1[0], enable_equalization=True)
 
-    # run_compiler(input_dir=work_dir + '/ir_output', output_dir=work_dir + '/compiler_output',
-    #              enable_cmodel=True, enable_rtl_model=True, enable_profiler=True)
+    run_compiler(input_dir=work_dir + '/ir_output_pfn', output_dir=work_dir + '/compiler_output_pfn',
+                 enable_cmodel=True, enable_rtl_model=True, enable_profiler=True)
 
-    quant_model = QuantModel(model, quant_model)
+    datalist2 = []
+    quant_model = QuantModel(model, quant_model1)
+    quant_model.eval()
+    quant_model.cuda()
+    for i, batch_dict in enumerate(test_loader):
+        if i == 200:
+            break
+        load_data_to_gpu(batch_dict)
+        spatial_features = quant_model(batch_dict)
+        datalist2.append(spatial_features.detach().cpu())
+
+    onnx_model2 = onnx.load(onnx_part2_path)
+    quant_model2 = run_quantizer(onnx_model2, dataloader=datalist2, num_batches=200,
+                                output_dir=work_dir + '/ir_output_backbone2d', input_vars=datalist2[0], enable_equalization=True)
+
+    run_compiler(input_dir=work_dir + '/ir_output_backbone2d', output_dir=work_dir + '/compiler_output_backbone2d',
+                 enable_cmodel=True, enable_rtl_model=True, enable_profiler=True)
+
+    quant_model = QuantModel(model, quant_model1, quant_model2)
     with torch.no_grad():
         eval_single_ckpt(quant_model, test_loader, args, eval_output_dir, logger, epoch_id, dist_test=dist_test)
+
 
 
 

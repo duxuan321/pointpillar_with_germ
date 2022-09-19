@@ -92,8 +92,9 @@ class ExportModel(nn.Module):
 
         cls_preds = output['export_cls_preds']
         box_preds = output['export_box_preds']
+        dir_cls_preds = output['export_dir_cls_preds']
 
-        return  cls_preds,box_preds
+        return  cls_preds,box_preds,dir_cls_preds
 
 def main():
     args, cfg = parse_config()
@@ -157,10 +158,7 @@ def main():
     model.cuda()
 
     onnx_dir = cfg.ROOT_DIR / 'output' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
-    try:
-        onnx_name = args.ckpt[args.ckpt.rindex('/')+1:args.ckpt.rindex('.')] + '_' + args.extra_tag + '.onnx'
-    except:
-        onnx_name = 'deploy.onnx'
+    onnx_name = 'pointpillars_deploy.onnx'
     onnx_path = os.path.join(onnx_dir, onnx_name)
     export_model = ExportModel(model)
     export_model.cuda()
@@ -172,7 +170,7 @@ def main():
 
     features = batch_dict['voxels']
     voxel_coords = batch_dict['voxel_coords']
-    voxel_coords = voxel_coords[:, 1]
+    voxel_coords = voxel_coords[:, 1].view(1, 1, -1).repeat(1, 64, 1).long()
     batch_dict.pop('voxels')
     batch_dict.pop('voxel_coords')
     data_dict_info.update(batch_dict)
@@ -183,6 +181,7 @@ def main():
                           operator_export_type=torch.onnx.OperatorExportTypes.ONNX_ATEN_FALLBACK, opset_version=9,
                           input_names=['features', 'flatten_coords'])
         print("导出onnx成功")
+        
 
 if __name__ == '__main__':
     main()
