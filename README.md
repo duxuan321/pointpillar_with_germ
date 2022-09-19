@@ -9,8 +9,19 @@ python -m torch.distributed.launch --nproc_per_node=4 train.py --launcher pytorc
 ## float test
 python test.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml  --ckpt ../weights/checkpoint_epoch_20.pth
 
-## 导出onnx
+## pointpillar分段式导出onnx
+## 导出onnx_split
 python export_onnx_split.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml --ckpt ../weights/checkpoint_epoch_20.pth
+
+## quant & test
+python quant_split.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml --ckpt ../weights/checkpoint_epoch_20.pth
+
+## pointpillar一次性导出onnx
+## note 
+## 量化工具n-graph中graph.py line 70
+## if not isinstance(input_tensors, list):改为if not isinstance(input_tensors, (list, tuple)):
+## 导出onnx
+python export_onnx.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml --ckpt ../weights/checkpoint_epoch_20.pth
 
 ## quant & test
 python quant.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml --ckpt ../weights/checkpoint_epoch_20.pth
@@ -18,6 +29,7 @@ python quant.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml --ckpt ../weight
 
 ## 测试结果记录
 https://lekqjyg0qj.feishu.cn/docx/doxcnoGr48VgV9szuncjEleGdXd
+https://lekqjyg0qj.feishu.cn/sheets/shtcntkFN8PoK3K2w4voN4s79ah
 
 
 ## 量化编译工具安装
