@@ -17,9 +17,9 @@ python export_onnx_split.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml --ck
 python quant_split.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml --ckpt ../weights/checkpoint_epoch_20.pth
 
 ## pointpillar一次性导出onnx
-# note 
-# 量化工具nquantizer中graph.py line 70
-# if not isinstance(input_tensors, list):改为if not isinstance(input_tensors, (list, tuple)):
+note 
+量化工具nquantizer中graph.py line 70
+if not isinstance(input_tensors, list):改为if not isinstance(input_tensors, (list, tuple)):
 ## 导出onnx
 python export_onnx.py --cfg_file ./cfgs/kitti_models/pointpillar.yaml --ckpt ../weights/checkpoint_epoch_20.pth
 
