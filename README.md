@@ -14,3 +14,5 @@ CUDA_VISIBLE_DEVICES=1 python test.py --cfg_file ./cfgs/kitti_models/mvlidarnet.
 ## 3.更新
 2022/7/7 v1.1
 修改了一些BUG，对DBSCAN后处理进行了一些格式化处理，修改了高度过滤
+2022/9/27 v2.0
+加入了mvlidarnet_center.yaml配置文件，更换了mvldiarnet的head，精度更高，可以接近pointpillar的精度（需要在数据集里加入地面信息）
