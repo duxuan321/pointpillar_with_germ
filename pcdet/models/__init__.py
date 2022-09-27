@@ -3,6 +3,8 @@ from collections import namedtuple
 import numpy as np
 import torch
 
+from thop import profile
+
 from .detectors import build_detector
 
 try:
@@ -39,6 +41,9 @@ def model_fn_decorator():
 
     def model_func(model, batch_dict):
         load_data_to_gpu(batch_dict)
+
+        # flops, params = profile(model, inputs=(batch_dict,))
+        # print(flops/1e9,params/1e6) #flops单位G，para单位M
         ret_dict, tb_dict, disp_dict = model(batch_dict)
 
         loss = ret_dict['loss'].mean()

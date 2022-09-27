@@ -16,7 +16,20 @@ from pcdet.models import build_network, model_fn_decorator
 from pcdet.utils import common_utils
 from train_utils.optimization import build_optimizer, build_scheduler
 from train_utils.train_utils import train_model
+# from convert import convert_model
 
+from tqdm import tqdm, trange
+from progressbar import *
+from pcdet.models import load_data_to_gpu
+# from pytorch_quantization import nn as quant_nn
+# from pytorch_quantization import quant_modules
+# from pytorch_quantization import calib
+# from pytorch_quantization.tensor_quant import QuantDescriptor
+# quant_nn.TensorQuantizer.use_fb_fake_quant = True
+# quant_desc_input = QuantDescriptor(num_bits=8, calib_method='histogram')
+# quant_nn.QuantLinear.set_default_quant_desc_input(quant_desc_input)
+# quant_nn.QuantConv2d.set_default_quant_desc_input(quant_desc_input)
+# quant_nn.QuantConv1d.set_default_quant_desc_input(quant_desc_input)
 
 def parse_config():
     parser = argparse.ArgumentParser(description='arg parser')
@@ -24,7 +37,7 @@ def parse_config():
 
     parser.add_argument('--batch_size', type=int, default=None, required=False, help='batch size for training')
     parser.add_argument('--epochs', type=int, default=None, required=False, help='number of epochs to train for')
-    parser.add_argument('--workers', type=int, default=4, help='number of workers for dataloader')
+    parser.add_argument('--workers', type=int, default=8, help='number of workers for dataloader')
     parser.add_argument('--extra_tag', type=str, default='default', help='extra tag for this experiment')
     parser.add_argument('--ckpt', type=str, default=None, help='checkpoint to start from')
     parser.add_argument('--pretrained_model', type=str, default=None, help='pretrained_model')
@@ -41,8 +54,9 @@ def parse_config():
 
     parser.add_argument('--max_waiting_mins', type=int, default=0, help='max waiting minutes')
     parser.add_argument('--start_epoch', type=int, default=0, help='')
-    parser.add_argument('--num_epochs_to_eval', type=int, default=0, help='number of checkpoints to be evaluated')
+    parser.add_argument('--num_epochs_to_eval', type=int, default=10, help='number of checkpoints to be evaluated')
     parser.add_argument('--save_to_file', action='store_true', default=False, help='')
+    parser.add_argument('--quantization', action='store_true', default=False, help='')
 
     args = parser.parse_args()
 
@@ -55,6 +69,51 @@ def parse_config():
 
     return args, cfg
 
+# def collect_stats(model, data_loader, num_batches):
+#     """Feed data to the network and collect statistic"""
+
+#     widgets = ['Calibration: ', Percentage(), ' ', Bar('#'),' ', Timer(), ' ', ETA(), ' ']
+#     pbar = ProgressBar(widgets=widgets, maxval=num_batches).start()
+
+#     # Enable calibrators
+#     for name, module in model.named_modules():
+#         if isinstance(module, quant_nn.TensorQuantizer):
+#             if module._calibrator is not None:
+#                 module.disable_quant()
+#                 module.enable_calib()
+#             else:
+#                 module.disable()
+
+#     for i, batch_data in enumerate(data_loader):
+#         load_data_to_gpu(batch_data)
+#         model(batch_data)
+#         # if i % 10 == 0:
+#         #     print("calib data: ", i, "/", num_batches)
+#         pbar.update(i)
+#         if i >= num_batches:
+#             break
+#     pbar.finish()
+
+#     # Disable calibrators
+#     for name, module in model.named_modules():
+#         if isinstance(module, quant_nn.TensorQuantizer):
+#             if module._calibrator is not None:
+#                 module.enable_quant()
+#                 module.disable_calib()
+#             else:
+#                 module.enable()
+
+# def compute_amax(model, **kwargs):
+#     # Load calib result
+#     for name, module in model.named_modules():
+#         if isinstance(module, quant_nn.TensorQuantizer):
+#             if module._calibrator is not None:
+#                 if isinstance(module._calibrator, calib.MaxCalibrator):
+#                     module.load_calib_amax()
+#                 else:
+#                     module.load_calib_amax(**kwargs)
+#             print(F"{name:40}: {module}")
+#     model.cuda()
 
 def main():
     args, cfg = parse_config()
@@ -115,6 +174,9 @@ def main():
     )
 
     model = build_network(model_cfg=cfg.MODEL, num_class=len(cfg.CLASS_NAMES), dataset=train_set)
+    # if args.quantization:
+    #     convert_model(model)
+
     if args.sync_bn:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
     model.cuda()
@@ -148,6 +210,11 @@ def main():
         optimizer, total_iters_each_epoch=len(train_loader), total_epochs=args.epochs,
         last_epoch=last_epoch, optim_cfg=cfg.OPTIMIZATION
     )
+    # if args.quantization:
+    #     dataloader = iter(train_loader)
+    #     with torch.no_grad():
+    #         collect_stats(model, dataloader, num_batches=20)
+    #         compute_amax(model, method="percentile", percentile=99.99) # max, mse, entropy
 
     # -----------------------start training---------------------------
     logger.info('**********************Start training %s/%s(%s)**********************'

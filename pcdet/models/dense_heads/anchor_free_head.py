@@ -5,11 +5,14 @@ from .anchor_head_template import AnchorHeadTemplate
 import math
 import torch.nn.functional as F
 
+"""
+针对mvlidarnet模型的head
+"""
 def conv3x3(in_channels, out_channels, stride=1, padding=1):
     """3x3 convolution with padding"""
     layers = [nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=padding, stride=stride, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU()]
+            nn.LeakyReLU()]
     return nn.Sequential(*layers)
 
 class AnchorFreeSingle(nn.Module):
@@ -21,6 +24,7 @@ class AnchorFreeSingle(nn.Module):
         self.class_names = class_names
         self.predict_boxes_when_training = predict_boxes_when_training
         self.max_objects = self.model_cfg.get('MAX_OBJECTS', 100)
+        self.export_onnx = self.model_cfg.get("EXPORT_ONNX",False)
 
         self.forward_ret_dict = {}
         self.build_losses()
@@ -33,7 +37,7 @@ class AnchorFreeSingle(nn.Module):
         self.bboxhead = nn.Sequential(conv3x3(input_channels, 64),
                                  conv3x3(64, 32))
 
-        self.conv_cls = nn.Conv2d(32,3,kernel_size=3, padding=1, stride=1, bias=True)
+        self.conv_cls = nn.Conv2d(32,num_class,kernel_size=3, padding=1, stride=1, bias=True)
         self.conv_box = nn.Conv2d(32,8,kernel_size=3, padding=1, stride=1, bias=True)
 
         self.init_weights()
@@ -58,6 +62,11 @@ class AnchorFreeSingle(nn.Module):
         cls_preds = self.conv_cls(cls_preds)
         box_preds = self.conv_box(box_preds)
 
+        if self.export_onnx:
+            data_dict["export_cls_preds"] = cls_preds
+            data_dict["export_box_preds"] = box_preds
+            return data_dict
+
         self.forward_ret_dict['cls_preds'] = cls_preds
         self.forward_ret_dict['box_preds'] = box_preds
 
@@ -77,6 +86,7 @@ class AnchorFreeSingle(nn.Module):
             else:
                 data_dict['final_box_dicts'] = pred_dicts
 
+        # print("test:",data_dict.keys())
         return data_dict
 
     def generate_predicted_boxes(self, batch_size, cls_preds, box_preds):
@@ -100,7 +110,6 @@ class AnchorFreeSingle(nn.Module):
               'score_thresh':0.2,
               'cls_thresh':[0.1,0.1,0.1]
             })
-        #print("测试",post_process_style)
         if post_process_style == 'anchor_free':
             ret_dict = postprocessing_v2(cls_preds, box_preds, self.point_cloud_range, self.grid_size, self.num_class, stride, score_thresh, pre_max_size, ret_dict)
         elif post_process_style == 'DBSCAN':
@@ -168,12 +177,13 @@ class AnchorFreeSingle(nn.Module):
                 if (h <= 0) or (w <= 0) or (l <= 0):
                     continue
                 
-                # 长宽的单位转化为BEV的格子
+                # 长宽的单位转化为BEV像素
                 bbox_l = l / bound_size_x * hm_l    
                 bbox_w = w / bound_size_y * hm_w
                 radius = compute_radius((math.ceil(bbox_l), math.ceil(bbox_w)))
+                # radius /= 2.0
                 radius = max(0, int(radius))
-
+                
                 row = (x - minX) / bound_size_x * hm_l  # x --> row (invert to 2D image space)
                 col = (y - minY) / bound_size_y * hm_w  # y --> col
                 center = np.array([col, row], dtype=np.float32)
@@ -315,7 +325,6 @@ def _neg_loss(pred, gt, alpha=2, beta=4):
     neg_weights = torch.pow(1 - gt, beta)
 
     loss = 0
-
     pos_loss = torch.log(pred) * torch.pow(1 - pred, alpha) * pos_inds
     neg_loss = torch.log(1 - pred) * torch.pow(pred, alpha) * neg_weights * neg_inds
 
@@ -598,6 +607,7 @@ def _nms(heat, kernel=3):
 def _topk(scores, K=40):
     batch, cat, height, width = scores.size()
 
+    # 每个类别返回最大的K个值
     topk_scores, topk_inds = torch.topk(scores.view(batch, cat, -1), K)
 
     topk_inds = topk_inds % (height * width)
@@ -647,8 +657,8 @@ def get_yaw_v2(direction):
     return torch.atan2(direction[:, 0:1], direction[:, 1:2])
 
 def postprocessing_v2(cls_preds, box_preds, point_cloud_range, grid_size, num_class, stride, score_thresh, pre_max_size, ret):
-
-    detections = decode(_sigmoid(cls_preds), _sigmoid(box_preds[:,:2,:,:]),box_preds[:,6:,:,:],box_preds[:,2:3,:,:],box_preds[:,3:6,:,:], K=pre_max_size)
+    cls_preds_temp = _sigmoid(cls_preds)
+    detections = decode(cls_preds_temp, _sigmoid(box_preds[:,:2,:,:]),box_preds[:,6:,:,:],box_preds[:,2:3,:,:],box_preds[:,3:6,:,:], K=pre_max_size)
 
     for i in range(detections.shape[0]):
         index = detections[i,:,0] > score_thresh

@@ -8,6 +8,8 @@ from . import kitti_utils
 from ...ops.roiaware_pool3d import roiaware_pool3d_utils
 from ...utils import box_utils, calibration_kitti, common_utils, object3d_kitti
 from ..dataset import DatasetTemplate
+from ..common_3d_ap import eval_map as eval_map_simple_3d
+from ..common_3d_ap import eval_bev_map as eval_map_simple_bev
 
 
 class KittiDataset(DatasetTemplate):
@@ -82,6 +84,7 @@ class KittiDataset(DatasetTemplate):
 
     def get_image_shape(self, idx):
         img_file = self.root_split_path / 'image_2' / ('%s.png' % idx)
+        print(img_file)
         assert img_file.exists()
         return np.array(io.imread(img_file).shape[:2], dtype=np.int32)
 
@@ -201,19 +204,34 @@ class KittiDataset(DatasetTemplate):
 
                 if count_inside_pts:
                     points = self.get_lidar(sample_idx)
-                    calib = self.get_calib(sample_idx)
-                    pts_rect = calib.lidar_to_rect(points[:, 0:3])
+                    # calib = self.get_calib(sample_idx)
+                    # pts_rect = calib.lidar_to_rect(points[:, 0:3])
 
-                    fov_flag = self.get_fov_flag(pts_rect, info['image']['image_shape'], calib)
-                    pts_fov = points[fov_flag]
+                    # fov_flag = self.get_fov_flag(pts_rect, info['image']['image_shape'], calib)
+                    # pts_fov = points[fov_flag]
                     corners_lidar = box_utils.boxes_to_corners_3d(gt_boxes_lidar)
                     num_points_in_gt = -np.ones(num_gt, dtype=np.int32)
 
                     for k in range(num_objects):
-                        flag = box_utils.in_hull(pts_fov[:, 0:3], corners_lidar[k])
+                        flag = box_utils.in_hull(points[:, 0:3], corners_lidar[k])
                         num_points_in_gt[k] = flag.sum()
                     annotations['num_points_in_gt'] = num_points_in_gt
 
+                # if count_inside_pts:
+                #     points = self.get_lidar(sample_idx)
+                #     calib = self.get_calib(sample_idx)
+                #     pts_rect = calib.lidar_to_rect(points[:, 0:3])
+
+                #     fov_flag = self.get_fov_flag(pts_rect, info['image']['image_shape'], calib)
+                #     pts_fov = points[fov_flag]
+                #     corners_lidar = box_utils.boxes_to_corners_3d(gt_boxes_lidar)
+                #     num_points_in_gt = -np.ones(num_gt, dtype=np.int32)
+
+                #     for k in range(num_objects):
+                #         flag = box_utils.in_hull(pts_fov[:, 0:3], corners_lidar[k])
+                #         num_points_in_gt[k] = flag.sum()
+                #     annotations['num_points_in_gt'] = num_points_in_gt
+                
             return info
 
         sample_id_list = sample_id_list if sample_id_list is not None else self.sample_id_list
@@ -358,10 +376,114 @@ class KittiDataset(DatasetTemplate):
 
         eval_det_annos = copy.deepcopy(det_annos)
         eval_gt_annos = [copy.deepcopy(info['annos']) for info in self.kitti_infos]
-        ap_result_str, ap_dict = kitti_eval.get_official_eval_result(eval_gt_annos, eval_det_annos, class_names)
+
+        eval_style = kwargs.get('eval_metric', None)
+        if eval_style == 'kitti':
+            ap_result_str, ap_dict = kitti_eval.get_official_eval_result(eval_gt_annos, eval_det_annos,
+                                                                         class_names)  # class_names : ['Car', ...]
+        elif eval_style == 'kitti_simple':
+            det_simple = []
+            gt_simple = []
+            num_cls = len(class_names)
+            for eval_det in eval_det_annos:
+                simple_item = [np.empty(shape=[0, 8]) for _ in range(num_cls)]
+                boxes_lidar = eval_det['boxes_lidar']
+                score = eval_det['score']
+                boxes_lidar = np.concatenate([boxes_lidar.reshape(-1, 7), score.reshape(-1, 1)], 1)
+                box_names = eval_det['name']
+                for i, cls_name in enumerate(box_names):
+                    idx = class_names.index(cls_name)
+                    simple_item[idx] = np.append(simple_item[idx], boxes_lidar[i].reshape(1, 8), axis=0)
+                det_simple.append(simple_item)
+
+            for eval_det in eval_gt_annos:
+                """
+                # 这个版本有问题
+                simple_item = [np.empty(shape=[0, 7]) for _ in range(num_cls)]
+                boxes_lidar = eval_det['gt_boxes_lidar']
+                box_names = eval_det['name']
+                for i, cls_name in enumerate(box_names):
+                    if cls_name == 'sprinkler':
+                        cls_name = 'truck'
+                    #在范围外的不考虑
+                    print("测试",self.point_cloud_range,boxes_lidar,i,box_names)
+                    if boxes_lidar[i][0] > self.point_cloud_range[3] or boxes_lidar[i][1] > self.point_cloud_range[4] or boxes_lidar[i][1]<self.point_cloud_range[1]:
+                        continue
+                    # if cls_name != 'big_vehicle' and cls_name != 'huge_vehicle':
+                    if cls_name == 'Car' or cls_name == 'Cyclist' or cls_name == 'Pedestrian' :
+                        idx = class_names.index(cls_name)
+                        simple_item[idx] = np.append(simple_item[idx], boxes_lidar[i].reshape(1, 7), axis=0)
+                gt_simple.append(simple_item)
+                """
+                simple_item = [np.empty(shape=[0, 7]) for _ in range(num_cls)]
+                boxes_lidar = eval_det['gt_boxes_lidar']
+                box_names = eval_det['name']
+                for i, cls_name in enumerate(box_names):
+                    if cls_name == 'Car' or cls_name == 'Cyclist' or cls_name == 'Pedestrian' or cls_name == 'Tricyclist':
+                    #if cls_name == 'Car' or cls_name == 'Cyclist':
+                        if boxes_lidar[i][0] > self.point_cloud_range[3] or boxes_lidar[i][1] > self.point_cloud_range[4] or boxes_lidar[i][1]<self.point_cloud_range[1]:
+                            continue
+                        idx = class_names.index(cls_name)
+                        simple_item[idx] = np.append(simple_item[idx], boxes_lidar[i].reshape(1, 7), axis=0)
+                gt_simple.append(simple_item)
+
+            ap_result_str = '\n**********************************evaluation 3d results**********************************\n'
+            ap_result_str += '\ncls_name\tiou_thr@0.7\tiou_thr@0.5\tiou_thr@0.25\n'
+            final_3d_ap = []
+            final_bev_ap = []
+            mean_ap, eval_results = eval_map_simple_3d(det_simple, gt_simple, iou_thr=0.7)
+            for idx, name in enumerate(class_names):
+                final_3d_ap.append([eval_results[idx]['ap'], ])
+
+            mean_ap, eval_results = eval_map_simple_3d(det_simple, gt_simple, iou_thr=0.5)
+            for idx, name in enumerate(class_names):
+                final_3d_ap[idx].append(eval_results[idx]['ap'])
+
+            mean_ap, eval_results = eval_map_simple_3d(det_simple, gt_simple, iou_thr=0.25)
+            for idx, name in enumerate(class_names):
+                final_3d_ap[idx].append(eval_results[idx]['ap'])
+
+            mean_bev_ap, eval_results2 = eval_map_simple_bev(det_simple, gt_simple, iou_thr=0.7)
+            for idx, name in enumerate(class_names):
+                final_bev_ap.append([eval_results2[idx]['ap'], ])
+
+            mean_bev_ap, eval_results2 = eval_map_simple_bev(det_simple, gt_simple, iou_thr=0.5)
+            for idx, name in enumerate(class_names):
+                final_bev_ap[idx].append(eval_results2[idx]['ap'])
+
+            mean_bev_ap, eval_results2 = eval_map_simple_bev(det_simple, gt_simple, iou_thr=0.25)
+            for idx, name in enumerate(class_names):
+                final_bev_ap[idx].append(eval_results2[idx]['ap'])
+
+            for idx, name in enumerate(class_names):
+                if len(name) >= 7:
+                    cur_line = name + ':\t%.4f\t\t%.4f\t\t%.4f\n' % tuple(final_3d_ap[idx])
+                else:
+                    cur_line = name + ':\t\t%.4f\t\t%.4f\t\t%.4f\n' % tuple(final_3d_ap[idx])
+                ap_result_str += cur_line
+
+            ap_result_str += '\n**********************************evaluation bev results**********************************\n'
+            ap_result_str += '\ncls_name\tiou_thr@0.7\tiou_thr@0.5\tiou_thr@0.25\n'
+            for idx, name in enumerate(class_names):
+                if len(name) >= 7:
+                    cur_line = name + ':\t%.4f\t\t%.4f\t\t%.4f\n' % tuple(final_bev_ap[idx])
+                else:
+                    cur_line = name + ':\t\t%.4f\t\t%.4f\t\t%.4f\n' % tuple(final_bev_ap[idx])
+                ap_result_str += cur_line
+
+            ap_result_str += '\n**********************************evaluation results**********************************\n'
+            ap_dict = {}
+
+
+
+        else:
+            raise RuntimeError('error EVAL_METRIC type:', eval_style)
 
         return ap_result_str, ap_dict
 
+        # ap_result_str, ap_dict = kitti_eval.get_official_eval_result(eval_gt_annos, eval_det_annos, class_names)
+
+        # return ap_result_str, ap_dict
     def __len__(self):
         if self._merge_all_iters_to_one_epoch:
             return len(self.kitti_infos) * self.total_epochs
@@ -391,6 +513,7 @@ class KittiDataset(DatasetTemplate):
             loc, dims, rots = annos['location'], annos['dimensions'], annos['rotation_y']
             gt_names = annos['name']
             gt_boxes_camera = np.concatenate([loc, dims, rots[..., np.newaxis]], axis=1).astype(np.float32)
+            # 这里dim会由lhw变换到lwh
             gt_boxes_lidar = box_utils.boxes3d_kitti_camera_to_lidar(gt_boxes_camera, calib)
 
             input_dict.update({
@@ -424,7 +547,18 @@ class KittiDataset(DatasetTemplate):
         data_dict = self.prepare_data(data_dict=input_dict)
 
         data_dict['image_shape'] = img_shape
-        #print("测试",data_dict["bev_map"].shape)
+        # 输出中间点云和bev
+        # if(self.split == 'val'):
+        #     out_bev_path = "/data/kitti/kitti_extend/output_bev_point/bev_map/{:0>6d}.bin".format(index)
+        #     out_pointcloud_path = "/data/kitti/kitti_extend/output_bev_point/pointcloud/{:0>6d}.bin".format(index)
+        #     bev_map_output = data_dict["bev_map"][0].astype(np.float32)
+        #     pointcloud_output = data_dict['points']
+
+        #     bev_map_output.tofile(out_bev_path)
+        #     pointcloud_output.tofile(out_pointcloud_path)
+
+            
+        #     print("测试",index,bev_map_output.dtype,pointcloud_output.dtype)
         return data_dict
 
 
@@ -455,11 +589,11 @@ def create_kitti_infos(dataset_cfg, class_names, data_path, save_path, workers=4
         pickle.dump(kitti_infos_train + kitti_infos_val, f)
     print('Kitti info trainval file is saved to %s' % trainval_filename)
 
-    dataset.set_split('test')
-    kitti_infos_test = dataset.get_infos(num_workers=workers, has_label=False, count_inside_pts=False)
-    with open(test_filename, 'wb') as f:
-        pickle.dump(kitti_infos_test, f)
-    print('Kitti info test file is saved to %s' % test_filename)
+    # dataset.set_split('test')
+    # kitti_infos_test = dataset.get_infos(num_workers=workers, has_label=False, count_inside_pts=False)
+    # with open(test_filename, 'wb') as f:
+    #     pickle.dump(kitti_infos_test, f)
+    # print('Kitti info test file is saved to %s' % test_filename)
 
     print('---------------Start create groundtruth database for data augmentation---------------')
     dataset.set_split(train_split)
@@ -475,10 +609,13 @@ if __name__ == '__main__':
         from pathlib import Path
         from easydict import EasyDict
         dataset_cfg = EasyDict(yaml.safe_load(open(sys.argv[2])))
-        ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
+        #ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
+        ROOT_DIR = Path("/home/yantingxin/workspace/dataset/kitti_tanway")
         create_kitti_infos(
             dataset_cfg=dataset_cfg,
             class_names=['Car', 'Pedestrian', 'Cyclist'],
-            data_path=ROOT_DIR / 'data' / 'kitti',
-            save_path=ROOT_DIR / 'data' / 'kitti'
+            # data_path=ROOT_DIR / 'data' / 'kitti',
+            # save_path=ROOT_DIR / 'data' / 'kitti'
+            data_path=ROOT_DIR ,
+            save_path=ROOT_DIR
         )

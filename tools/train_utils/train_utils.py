@@ -8,6 +8,7 @@ from torch.nn.utils import clip_grad_norm_
 from pcdet.utils import common_utils, commu_utils
 
 
+
 def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, accumulated_iter, optim_cfg,
                     rank, tbar, total_it_each_epoch, dataloader_iter, tb_log=None, leave_pbar=False):
     if total_it_each_epoch == len(train_loader):
@@ -50,6 +51,8 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
         cur_forward_time = forward_timer - data_timer
 
         loss.backward()
+        # for name,x in model.named_parameters():
+        #     print('-->name:', name, '-->grad_requirs:', x.requires_grad, '--weight', torch.mean(x.data), ' -->grad_value:', torch.mean(x.grad))
         clip_grad_norm_(model.parameters(), optim_cfg.GRAD_NORM_CLIP)
         optimizer.step()
 

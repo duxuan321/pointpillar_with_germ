@@ -68,6 +68,37 @@ def draw_gaussian_to_heatmap(heatmap, center, radius, k=1, valid_mask=None):
         torch.max(masked_heatmap, masked_gaussian * k, out=masked_heatmap)
     return heatmap
 
+def draw_gaussian_to_heatmap_v2(heatmap, center, radius, k=1, valid_mask=None):
+    """
+    采用第二种分配label的方式：AFNet中提到的，中心为1，半径1内的为0.8，其他为1/d
+    intput:radius为[dx,dy]
+
+    """
+    # print(radius,(radius[0]-1)/2,(radius[1]-1)/2)
+    # dx = int((radius[0]-1)/2)
+    # dy = int((radius[1]-1)/2)
+    dx = max( int((radius[0]-1)/2),1 )
+    dy = max( int((radius[1]-1)/2),1 )
+    x, y = int(center[0]), int(center[1])
+
+    max_dim = max(dx,dy)
+    # print(dx,dy,max_dim,center)
+    for i in range(max_dim):
+        left,right = (max(x-min(dx,max_dim-i),0),
+                min(x+min(dx,max_dim-i)+1,heatmap.shape[1]) )
+        top,down = (max(y-min(dy,max_dim-i),0),
+                min(y+min(dy,max_dim-i)+1,heatmap.shape[0]) )
+        # print(left,right,top,down)
+        
+        if(i == max_dim-1):
+            heatmap[top:down,left:right] = 0.8
+        else:
+            heatmap[top:down,left:right] = 1.0/(max_dim-i)
+    
+    heatmap[y,x] = 1.0
+    # print(heatmap[y-dy:y+dy+1,x-dx:x+dx+1])
+    return heatmap
+
 
 def _nms(heat, kernel=3):
     pad = (kernel - 1) // 2

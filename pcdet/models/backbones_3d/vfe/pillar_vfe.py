@@ -94,6 +94,7 @@ class PillarVFE(VFETemplate):
     def forward(self, batch_dict, **kwargs):
   
         voxel_features, voxel_num_points, coords = batch_dict['voxels'], batch_dict['voxel_num_points'], batch_dict['voxel_coords']
+        # print("???",voxel_features.shape,voxel_num_points.shape,coords.shape)
         points_mean = voxel_features[:, :, :3].sum(dim=1, keepdim=True) / voxel_num_points.type_as(voxel_features).view(-1, 1, 1)
         f_cluster = voxel_features[:, :, :3] - points_mean
 

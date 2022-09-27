@@ -384,3 +384,181 @@ class RegLossCenterNet(nn.Module):
             pred = _transpose_and_gather_feat(output, ind)
         loss = _reg_loss(pred, target, mask)
         return loss
+
+
+
+def bbox_overlaps(bboxes1, bboxes2, mode="iou", is_aligned=False):
+    """Calculate overlap between two set of bboxes.
+    If ``is_aligned`` is ``False``, then calculate the ious between each bbox
+    of bboxes1 and bboxes2, otherwise the ious between each aligned pair of
+    bboxes1 and bboxes2.
+    Args:
+        bboxes1 (Tensor): shape (m, 4)
+        bboxes2 (Tensor): shape (n, 4), if is_aligned is ``True``, then m and n
+            must be equal.
+        mode (str): "iou" (intersection over union) or iof (intersection over
+            foreground).
+    Returns:
+        ious(Tensor): shape (m, n) if is_aligned == False else shape (m, 1)
+    """
+    assert mode in ["iou", "iof"]
+
+    rows = bboxes1.size(0)
+    cols = bboxes2.size(0)
+    if is_aligned:
+        assert rows == cols
+
+    if rows * cols == 0:
+        return bboxes1.new(rows, 1) if is_aligned else bboxes1.new(rows, cols)
+
+    if is_aligned:
+        lt = torch.max(bboxes1[:, :2], bboxes2[:, :2])  # [rows, 2]
+        rb = torch.min(bboxes1[:, 2:], bboxes2[:, 2:])  # [rows, 2]
+
+        wh = (rb - lt + 1).clamp(min=0)  # [rows, 2]
+        overlap = wh[:, 0] * wh[:, 1]
+        area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (
+            bboxes1[:, 3] - bboxes1[:, 1] + 1
+        )
+
+        if mode == "iou":
+            area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (
+                bboxes2[:, 3] - bboxes2[:, 1] + 1
+            )
+            ious = overlap / (area1 + area2 - overlap)
+        else:
+            ious = overlap / area1
+    else:
+        lt = torch.max(bboxes1[:, None, :2], bboxes2[:, :2])  # [rows, cols, 2]
+        rb = torch.min(bboxes1[:, None, 2:], bboxes2[:, 2:])  # [rows, cols, 2]
+
+        wh = (rb - lt + 1).clamp(min=0)  # [rows, cols, 2]
+        overlap = wh[:, :, 0] * wh[:, :, 1]
+        area1 = (bboxes1[:, 2] - bboxes1[:, 0] + 1) * (
+            bboxes1[:, 3] - bboxes1[:, 1] + 1
+        )
+
+        if mode == "iou":
+            area2 = (bboxes2[:, 2] - bboxes2[:, 0] + 1) * (
+                bboxes2[:, 3] - bboxes2[:, 1] + 1
+            )
+            ious = overlap / (area1[:, None] + area2 - overlap)
+        else:
+            ious = overlap / (area1[:, None])
+
+    return ious
+
+# bev 2Diou
+def _iou_loss_bev(pred, target, mask,eps=1e-6):
+    """
+        pred:batch * anchor_num * ['center*2', 'center_z*1', 'dim*3_lwh', 'rot*2']
+    """
+    # 加入mask过滤
+    num = mask.float().sum()
+    mask = mask.unsqueeze(2).expand_as(target).float()
+    isnotnan = (~ torch.isnan(target)).float()
+    mask *= isnotnan
+    pred = pred * mask
+    target = target * mask
+
+    voxel_size_commen = 0.16
+    pre_x_min,pre_x_max = (
+        pred[:,:,0]*voxel_size_commen -0.5*pred[:,:,4].exp(),
+        pred[:,:,0]*voxel_size_commen +0.5*pred[:,:,4].exp()
+    )
+    # pre_y_min,pre_y_max = (
+    #     pred[:,:,1]*voxel_size_commen -0.5*pred[:,:,3].exp(),
+    #     pred[:,:,1]*voxel_size_commen +0.5*pred[:,:,3].exp()
+    # )
+
+    with torch.no_grad():
+        target_x_min,target_x_max = (
+            target[:,:,0]*voxel_size_commen -0.5*target[:,:,4].exp(),
+            target[:,:,0]*voxel_size_commen +0.5*target[:,:,4].exp()
+        )
+        # target_y_min,target_y_max = (
+        #     target[:,:,1]*voxel_size_commen -0.5*target[:,:,3].exp(),
+        #     target[:,:,1]*voxel_size_commen +0.5*target[:,:,3].exp()
+        # )
+
+    inter_x = torch.min(pre_x_max,target_x_max) - torch.max(pre_x_min,target_x_min)
+    # inter_y = torch.min(pre_y_max,target_y_max) - torch.max(pre_y_min,target_y_min)
+    # print(inter_x,inter_y)
+
+    # iou = inter_x*inter_y/(pred[:,:,4].exp()*pred[:,:,3].exp() + target[:,:,3].exp()*target[:,:,4].exp() - inter_x*inter_y)
+    iou = inter_x/(pred[:,:,4].exp() + target[:,:,4].exp() - inter_x)
+    
+    iou[iou < 0] = 0.0
+    iou[iou > 1] = 1.0
+    iou_loss = (1 - iou).sum() / iou.shape[0]
+
+    print("bev loss:",iou_loss)
+    print("bev---",inter_x,pred[:,:,4].exp(),target[:,:,4].exp(),iou)
+    return iou_loss
+
+# hei 1Diou
+def _iou_loss_hei(pred, target, mask,eps=1e-6):
+    """
+        pred:batch * anchor_num * ['center*2', 'center_z*1', 'dim*3_lwh', 'rot*2']
+        mask:batch * anchor_num
+    """
+    # 加入mask
+    num = mask.float().sum()
+    mask = mask.unsqueeze(2).expand_as(target).float()
+    isnotnan = (~ torch.isnan(target)).float()
+    mask *= isnotnan
+
+    mask_inv = (-mask+1)[:,:,0]     # mask的相反值
+    
+    pred = pred * mask
+    target = target * mask
+    # print("hei loss",pred,target)
+
+    pre_hei = pred[:,:,5].exp() * 0.5
+    gt_hei = target[:,:,5].exp() * 0.5
+    pre_top,pre_down = (
+        pred[:,:,2] + pre_hei,
+        pred[:,:,2] - pre_hei
+    )
+    gt_top,gt_down = (
+        target[:,:,2] + gt_hei,
+        target[:,:,2] - gt_hei
+    )
+    inter = torch.min(pre_top,gt_top) - torch.max(pre_down,gt_down)
+    inter = inter*(mask[:,:,0])     # 这里对于mask为0的计算为1，需要消去
+    iou = inter/(gt_hei + pre_hei - inter+0.00000001)
+    # print("运算前",iou,inter)
+    iou += mask_inv  # 对于iou loss来说，mask为0的计算为0，需要转化为1
+    
+    # print(mask_inv,iou)
+    iou[iou < 0] = 0.0
+    iou[iou > 1] = 1.0
+    iou_loss = (1 - iou).sum() / iou.shape[0]
+
+    # print(iou_loss)
+    return iou_loss
+
+class IOULoss(nn.Module):
+    """
+    Refer to https://github.com/tianweiy/CenterPoint
+    """
+
+    def __init__(self):
+        super(IOULoss, self).__init__()
+
+    def forward(self, output, mask, ind=None, target=None):
+        """
+        Args:
+            output: (batch x dim x h x w) or (batch x max_objects)
+            mask: (batch x max_objects)
+            ind: (batch x max_objects)
+            target: (batch x max_objects x dim)
+        Returns:
+        """
+        if ind is None:
+            pred = output
+        else:
+            pred = _transpose_and_gather_feat(output, ind)
+        loss = _iou_loss_hei(pred, target, mask)
+        # loss = _iou_loss_bev(pred, target, mask)
+        return loss

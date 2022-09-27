@@ -11,12 +11,93 @@ def conv3x3(in_channels, out_channels, stride=1, padding=1):
             nn.ReLU()]
     return nn.Sequential(*layers)
 
+class PixelShuffle(nn.Module):
+    def __init__(self, in_channels, out_channels, norm_fn, scale=2):
+        super(PixelShuffle, self).__init__()
+        self.conv = nn.Sequential(nn.Conv2d(in_channels, out_channels * scale * scale, 1, stride=1, padding=0, bias=False),
+                                    norm_fn(out_channels * scale *scale),
+                                    nn.ReLU())
+        self.scale = scale
+    def forward(self, x):
+        x = self.conv(x)
+        b = int(x.size(0))
+        c = int(x.size(1))
+        h = int(x.size(2))
+        w = int(x.size(3))
+        x = x.view(b, c // self.scale // self.scale, self.scale, self.scale, h, w).permute(0, 1, 4, 2, 5, 3).contiguous()
+        x = x.view(b, c // self.scale // self.scale, h * self.scale, w * self.scale)
+        return x
+
+class PixelShuffle_v2(nn.Module):
+    def __init__(self, in_channels, out_channels, norm_fn, scale=2):
+        super(PixelShuffle_v2, self).__init__()
+        self.conv = nn.Sequential(nn.Conv2d(in_channels, out_channels * scale * scale, 1, stride=1, padding=0, bias=False),
+                                    norm_fn(out_channels * scale * scale),
+                                    nn.ReLU())
+        self.scale = scale
+        # self.upsample = torch.nn.UpsamplingBilinear2d(scale_factor=2)
+        self.upsample = torch.nn.PixelShuffle(2)
+    def forward(self, x):
+        x = self.conv(x)
+        b = int(x.size(0))
+        c = int(x.size(1))
+        h = int(x.size(2))
+        w = int(x.size(3))
+        # x = x.view(b, c // self.scale // self.scale, self.scale, self.scale, h, w).permute(0, 1, 4, 2, 5, 3).contiguous()
+        # x = x.view(b, c // self.scale // self.scale, h * self.scale, w * self.scale)
+        # x = x.permute(0, 2, 3, 1).contiguous()
+        # x = x.view(b, h, w * self.scale, c // self.scale)
+        # x = x.permute(0, 2, 1, 3).contiguous()
+        # x = x.view(b, w * self.scale, h * self.scale, c // self.scale // self.scale)
+        # x = x.permute(0, 3, 2, 1).contiguous()
+
+        # # 默认是NHWC格式
+        # x = x.view(b, h, w * self.scale, c // self.scale)
+        # x = x.permute(0, 2, 1, 3).contiguous()
+        # x = x.view(b, w * self.scale, h * self.scale, c // self.scale // self.scale)
+        # x = x.permute(0, 2, 1, 3).contiguous()
+
+        x = self.upsample(x)
+
+        return x
+        
+
+class PixelShuffle_v3(nn.Module):
+    def __init__(self, in_channels, out_channels, norm_fn, scale=2):
+        super(PixelShuffle_v3, self).__init__()
+        self.conv = nn.Sequential(nn.Conv2d(in_channels, out_channels * scale * scale, 1, stride=1, padding=0, bias=False),
+                                    norm_fn(out_channels * scale * scale),
+                                    nn.ReLU())
+        self.scale = scale
+        # self.upsample = torch.nn.UpsamplingBilinear2d(scale_factor=2)
+        # self.upsample = torch.nn.PixelShuffle(2)
+    def forward(self, x):
+        x = self.conv(x)
+        b = int(x.size(0))
+        c = int(x.size(1))
+        h = int(x.size(2))
+        w = int(x.size(3))
+        # x = x.view(b, c // self.scale // self.scale, self.scale, self.scale, h, w).permute(0, 1, 4, 2, 5, 3).contiguous()
+        # x = x.view(b, c // self.scale // self.scale, h * self.scale, w * self.scale)
+        x = x.permute(0, 2, 3, 1).contiguous()
+        x = x.view(b, h, w * self.scale, c // self.scale)
+        x = x.permute(0, 2, 1, 3).contiguous()
+        x = x.view(b, w * self.scale, h * self.scale, c // self.scale // self.scale)
+        x = x.permute(0, 3, 2, 1).contiguous()
+
+        # x = self.upsample(x)
+
+        return x
 
 def upconv(in_channels, out_channels):
-    layers = [nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU()]
-    return nn.Sequential(*layers)
+    # layers = [nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1),
+    #         nn.BatchNorm2d(out_channels),
+    #         nn.ReLU()]
+    # return nn.Sequential(*layers)
+
+    # return PixelShuffle(in_channels, out_channels, nn.BatchNorm2d)
+    return PixelShuffle_v3(in_channels, out_channels, nn.BatchNorm2d)
+
 
 
 class MVLidarNetBackbone(nn.Module):
@@ -35,6 +116,10 @@ class MVLidarNetBackbone(nn.Module):
                                  conv3x3(16, 16),
                                  conv3x3(16, 32, 2),
                                  conv3x3(32, 64))   # 这里改成了32 64，因为暂时没有分割信息
+        # self.height = nn.Sequential(conv3x3(multi_input_channels[0],32),
+        #                 conv3x3(32,32,2),
+        #                 conv3x3(32,64)
+        #         )   # 这里改成了32 64，因为暂时没有分割信息
         
         self.block1a = conv3x3(64, 64)
         self.block1b = conv3x3(64, 64, 2)
@@ -59,6 +144,8 @@ class MVLidarNetBackbone(nn.Module):
         Returns:
         """
         height_feat = data_dict['spatial_features']
+        # print(height_feat.shape)
+        
         # import skimage
         # jpg = height_feat.detach().cpu().squeeze().numpy()
         # print('-----------------------', jpg.min(), jpg.max())

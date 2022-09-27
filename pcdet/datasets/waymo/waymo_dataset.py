@@ -26,6 +26,7 @@ class WaymoDataset(DatasetTemplate):
         self.data_path = self.root_path / self.dataset_cfg.PROCESSED_DATA_TAG
         self.split = self.dataset_cfg.DATA_SPLIT[self.mode]
         split_dir = self.root_path / 'ImageSets' / (self.split + '.txt')
+        # split_dir = "/home/yantingxin/workspace/dataset/waymo_1_3_2/ImageSets/" + (self.split + '.txt')
         self.sample_sequence_list = [x.strip() for x in open(split_dir).readlines()]
 
         self.infos = []
@@ -157,7 +158,7 @@ class WaymoDataset(DatasetTemplate):
         return all_sequences_infos
 
     def get_lidar(self, sequence_name, sample_idx):
-        lidar_file = self.data_path / sequence_name / ('%04d.npy' % sample_idx)
+        lidar_file = self.data_path / sequence_name / 'point_cloud'/('%04d.npy' % sample_idx)
         point_features = np.load(lidar_file)  # (N, 7): [x, y, z, intensity, elongation, NLZ_flag]
 
         points_all, NLZ_flag = point_features[:, 0:5], point_features[:, 5]

@@ -26,6 +26,7 @@ class DataBaseSampler(object):
             db_info_path = self.root_path.resolve() / db_info_path
             with open(str(db_info_path), 'rb') as f:
                 infos = pickle.load(f)
+                # print("testytx:",class_names)
                 [self.db_infos[cur_class].extend(infos[cur_class]) for cur_class in class_names]
 
         for func_name, val in sampler_cfg.PREPARE.items():
@@ -42,6 +43,7 @@ class DataBaseSampler(object):
             if class_name not in class_names:
                 continue
             self.sample_class_num[class_name] = sample_num
+            
             self.sample_groups[class_name] = {
                 'sample_num': sample_num,
                 'pointer': len(self.db_infos[class_name]),
@@ -223,7 +225,6 @@ class DataBaseSampler(object):
                 sample_group['sample_num'] = str(int(self.sample_class_num[class_name]) - num_gt)
             if int(sample_group['sample_num']) > 0:
                 sampled_dict = self.sample_with_fixed_number(class_name, sample_group)
-
                 sampled_boxes = np.stack([x['box3d_lidar'] for x in sampled_dict], axis=0).astype(np.float32)
 
                 if self.sampler_cfg.get('DATABASE_WITH_FAKELIDAR', False):

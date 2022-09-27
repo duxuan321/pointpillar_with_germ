@@ -11,6 +11,70 @@ try:
 except:
     pass
 
+# 测试扩充维度对结果的影响
+@numba.jit
+def make_bev_map_norm_more(PointCloud, PointCloud_,min_heightMap, max_heightMap, mean_intensityMap, max_intensityMap ,countMap,boundary):
+    for i in range(PointCloud.shape[0]):
+        h = np.int_(PointCloud[i, 0])
+        w = np.int_(PointCloud[i, 1])
+        # if h >= 0 and h < Height and w >= 0 and w < Width:
+        norm_z = (PointCloud[i,2] - boundary[2]) / (boundary[5] - boundary[2]) - 0.5
+        if min_heightMap[h, w] > norm_z:
+            min_heightMap[h, w] = norm_z 
+        if max_heightMap[h, w] < norm_z:
+            max_heightMap[h, w] = norm_z
+        if max_intensityMap[h, w]<PointCloud_[i,3]:
+            max_intensityMap[h, w] = PointCloud_[i,3]
+        
+        # mean_xyz[0,h,w] += (PointCloud_[i,0]- boundary[0] - (h+0.5)*0.16)
+        # mean_xyz[1,h,w] += (PointCloud_[i,1]- boundary[1] - (w+0.5)*0.16)
+        # mean_xyz[2,h,w] += (PointCloud_[i,2]- boundary[2] - 2)
+        # mean_xyz[0,h,w] += (PointCloud_[i,0]/(boundary[3]-boundary[0])-0.5)
+        # mean_xyz[1,h,w] += (PointCloud_[i,1]/(boundary[4]))
+        # mean_xyz[2,h,w] += (PointCloud_[i,2]/(boundary[5]-boundary[2])-0.5)
+
+        mean_intensityMap[h, w] += PointCloud[i,3] - 0.5
+        countMap[h, w] += 1
+
+    return min_heightMap, max_heightMap, mean_intensityMap,max_intensityMap,countMap
+
+
+# 针对waymo数据集的5个维度信息进行bevmap
+@numba.jit
+def make_bev_map_norm_waymo(PointCloud, min_heightMap, max_heightMap, mean_intensityMap, mean_elongationMap,countMap,boundary):
+    for i in range(PointCloud.shape[0]):
+        h = np.int_(PointCloud[i, 0])
+        w = np.int_(PointCloud[i, 1])
+        # if h >= 0 and h < Height and w >= 0 and w < Width:
+        norm_z = (PointCloud[i,2] - boundary[2]) / (boundary[5] - boundary[2]) - 0.5
+        if min_heightMap[h, w] > norm_z:
+            min_heightMap[h, w] = norm_z 
+        if max_heightMap[h, w] < norm_z:
+            max_heightMap[h, w] = norm_z
+
+        mean_intensityMap[h, w] += PointCloud[i,3] - 0.5
+        mean_elongationMap[h, w] += PointCloud[i,4] - 0.5
+        countMap[h, w] += 1
+
+    return min_heightMap, max_heightMap, mean_intensityMap,mean_elongationMap,countMap
+
+@numba.jit
+def make_bev_map_norm(PointCloud, min_heightMap, max_heightMap, mean_intensityMap, countMap,boundary):
+    for i in range(PointCloud.shape[0]):
+        h = np.int_(PointCloud[i, 0])
+        w = np.int_(PointCloud[i, 1])
+        # if h >= 0 and h < Height and w >= 0 and w < Width:
+        norm_z = (PointCloud[i,2] - boundary[2]) / (boundary[5] - boundary[2]) - 0.5
+        if min_heightMap[h, w] > norm_z:
+            min_heightMap[h, w] = norm_z 
+        if max_heightMap[h, w] < norm_z:
+            max_heightMap[h, w] = norm_z
+
+        mean_intensityMap[h, w] += PointCloud[i,3] - 0.5
+        countMap[h, w] += 1
+
+    return min_heightMap, max_heightMap, mean_intensityMap,countMap
+
 @numba.jit
 def make_bev_map(PointCloud, min_heightMap, max_heightMap, mean_intensityMap, countMap):
     for i in range(PointCloud.shape[0]):
@@ -18,7 +82,7 @@ def make_bev_map(PointCloud, min_heightMap, max_heightMap, mean_intensityMap, co
         w = np.int_(PointCloud[i, 1])
         # if h >= 0 and h < Height and w >= 0 and w < Width:
         if min_heightMap[h, w] > PointCloud[i,2]:
-            min_heightMap[h, w] = PointCloud[i,2]
+            min_heightMap[h, w] = PointCloud[i,2] 
         if max_heightMap[h, w] < PointCloud[i,2]:
             max_heightMap[h, w] = PointCloud[i,2]
 
@@ -29,9 +93,6 @@ def make_bev_map(PointCloud, min_heightMap, max_heightMap, mean_intensityMap, co
 
 ## MVlidarnet：这里生成的BEV为min_hei max_hei mean_intensity
 def makeBEVMap(PointCloud_, boundary, res_x, res_y, BEV_HEIGHT, BEV_WIDTH):
-    """
-    输入的PointCloud是经过的边界过滤的
-    """
     Height = BEV_HEIGHT + 1
     Width = BEV_WIDTH + 1
     val_flag_1 = np.logical_and(PointCloud_[:, 0] > boundary[0], PointCloud_[:, 0] < boundary[3])
@@ -46,22 +107,33 @@ def makeBEVMap(PointCloud_, boundary, res_x, res_y, BEV_HEIGHT, BEV_WIDTH):
     PointCloud[:, 0] = np.int_(np.floor((PointCloud[:, 0] - boundary[0]) / res_x))
     PointCloud[:, 1] = np.int_(np.floor((PointCloud[:, 1] - boundary[1]) / res_y))
 
-    min_heightMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float) + 99
-    max_heightMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float) - 99
-    mean_intensityMap = np.zeros((BEV_HEIGHT, BEV_WIDTH))
-    countMap = np.zeros((BEV_HEIGHT, BEV_WIDTH))
-    min_heightMap,max_heightMap,mean_intensityMap,countMap = make_bev_map(PointCloud,min_heightMap,max_heightMap,mean_intensityMap,countMap)
+    min_heightMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32) + 99
+    max_heightMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32) - 99
+    mean_intensityMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32)
+    max_intensityMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32)
+    mean_xyz = np.zeros((3,BEV_HEIGHT, BEV_WIDTH),dtype = np.float32) # 维度扩充
+    countMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.int8)
 
+    # mean_elongationMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32)   # 针对waymo
+    
+    #min_heightMap,max_heightMap,mean_intensityMap,countMap = make_bev_map(PointCloud,min_heightMap,max_heightMap,mean_intensityMap,countMap)
+    # min_heightMap,max_heightMap,mean_intensityMap,countMap = make_bev_map_norm(PointCloud,min_heightMap,
+    #                             max_heightMap,mean_intensityMap,countMap,boundary)
+    # min_heightMap,max_heightMap,mean_intensityMap,mean_elongationMap,countMap = make_bev_map_norm_waymo(PointCloud,min_heightMap,
+    #                 max_heightMap,mean_intensityMap,mean_elongationMap,countMap,boundary)
+    min_heightMap,max_heightMap,mean_intensityMap,max_intensityMap,countMap = make_bev_map_norm_more(PointCloud,PointCloud_[val_flag_merge],min_heightMap,
+                                max_heightMap,mean_intensityMap, max_intensityMap, countMap ,boundary)
+
+    count_temp = countMap.copy()/130 - 0.5
     countMap[countMap == 0] +=1
     mean_intensityMap = mean_intensityMap/countMap
+    mean_xyz = mean_xyz/countMap
+
     min_heightMap[min_heightMap > 98] = 0
     max_heightMap[max_heightMap < -98] = 0
-    
-    # RGB_Map = np.zeros((3, BEV_HEIGHT, Width - 1))
-    # RGB_Map[0] = min_heightMap  # r_map
-    # RGB_Map[1] = max_heightMap  # g_map
-    # RGB_Map[2] = mean_intensityMap  # b_map
+    max_intensityMap -= 0.5
 
+    # RGB_Map = np.stack([min_heightMap, max_heightMap, mean_intensityMap], 0)
     RGB_Map = np.stack([min_heightMap, max_heightMap, mean_intensityMap], 0)
 
     return RGB_Map

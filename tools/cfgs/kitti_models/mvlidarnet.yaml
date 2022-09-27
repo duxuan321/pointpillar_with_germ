@@ -2,7 +2,9 @@ CLASS_NAMES: ['Car', 'Pedestrian', 'Cyclist']
 
 DATA_CONFIG: 
     _BASE_CONFIG_: cfgs/dataset_configs/kitti_dataset.yaml
-    POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
+    DATA_PATH: '/home/tsing86/datasets/kitti'
+    # POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
+    POINT_CLOUD_RANGE: [0, -39.68, -3, 69.12, 39.68, 1]  
     DATA_PROCESSOR:
         - NAME: mask_points_and_boxes_outside_range
           REMOVE_OUTSIDE_BOXES: True
@@ -14,7 +16,9 @@ DATA_CONFIG:
           }
 
         - NAME: transform_points_to_bev
-          VOXEL_SIZE: [0.1, 0.1, 4]
+          # VOXEL_SIZE: [0.1, 0.1, 4]
+          VOXEL_SIZE: [0.16, 0.16, 4]
+          # VOXEL_SIZE: [0.08, 0.08, 4]
 
     DATA_AUGMENTOR:
         DISABLE_AUG_LIST: ['placeholder']
@@ -52,9 +56,11 @@ MODEL:
     BACKBONE_2D:
         NAME: MVLidarNetBackbone
         MULTI_INPUT_CHANNELS: [3, 7]
+        # MULTI_INPUT_CHANNELS: [5, 7]
 
     DENSE_HEAD:
         NAME: AnchorFreeSingle
+        EXPORT_ONNX: False # 用于导出onnx模型，这个参数有两个都需要修改（1/2）
         MAX_OBJECTS: 100
         CLASS_AGNOSTIC: False
 
@@ -68,8 +74,8 @@ MODEL:
             STRIDE: 4   # 下采样的倍数
             SCORE_THRESH: 0.1
             PRE_MAX_SIZE: 100
-            #POST_PROCESS_STYLE: anchor_free
-            POST_PROCESS_STYLE: DBSCAN
+            POST_PROCESS_STYLE: anchor_free
+            #POST_PROCESS_STYLE: DBSCAN
             DBSCAN_PARAMATER: {
               'eps':1,
               'min_samples':2,
@@ -80,7 +86,9 @@ MODEL:
     POST_PROCESSING:
             RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
             EVAL_METRIC: kitti
-
+            #EVAL_METRIC: kitti_simple
+    
+    EXPORT_ONNX: False  # 这个参数有两个都需要修改（2/2）
 
 OPTIMIZATION:
     BATCH_SIZE_PER_GPU: 16

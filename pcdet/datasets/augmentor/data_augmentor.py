@@ -4,6 +4,7 @@ import numpy as np
 
 from ...utils import common_utils
 from . import augmentor_utils, database_sampler
+from . import part_aware_augmentation
 
 
 class DataAugmentor(object):
@@ -225,6 +226,29 @@ class DataAugmentor(object):
         data_dict['points'] = points
         return data_dict
     
+
+    ###add Part-Aware Data Augmentation
+    def part_aware_aug(self, data_dict=None, config=None):
+        """
+        随机缩放
+        """
+        if data_dict is None:
+            return partial(self.part_aware_aug, config=config)
+        pa_aug = part_aware_augmentation.PartAwareAugmentation(
+            data_dict['points'], data_dict['gt_boxes'], data_dict['gt_names'], class_names=self.class_names
+        )
+        points, gt_boxes_mask = pa_aug.augment(pa_aug_param=config['PA_AUG_PARAM'])
+        gt_boxes = data_dict['gt_boxes'][gt_boxes_mask]
+        gt_names = data_dict['gt_names'][gt_boxes_mask]
+
+        data_dict['gt_boxes'] = gt_boxes
+        data_dict['points'] = points
+
+        # print("??-")
+        data_dict['gt_names'] = gt_names
+        return data_dict
+
+
     def forward(self, data_dict):
         """
         Args:
