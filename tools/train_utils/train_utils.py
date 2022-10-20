@@ -6,6 +6,7 @@ import tqdm
 import time
 from torch.nn.utils import clip_grad_norm_
 from pcdet.utils import common_utils, commu_utils
+from icecream import ic 
 
 
 def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, accumulated_iter, optim_cfg,
@@ -18,7 +19,7 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
         data_time = common_utils.AverageMeter()
         batch_time = common_utils.AverageMeter()
         forward_time = common_utils.AverageMeter()
-
+    ic(total_it_each_epoch)
     for cur_it in range(total_it_each_epoch):
         end = time.time()
         try:
@@ -108,6 +109,8 @@ def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_
                 cur_scheduler = lr_warmup_scheduler
             else:
                 cur_scheduler = lr_scheduler
+            if hasattr(model, 'backbone_2d') and hasattr(model.backbone_2d, 'ctx'):
+                model.backbone_2d.search_space.on_epoch_start(cur_epoch+1)
             accumulated_iter = train_one_epoch(
                 model, optimizer, train_loader, model_func,
                 lr_scheduler=cur_scheduler,

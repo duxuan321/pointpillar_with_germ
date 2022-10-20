@@ -10,7 +10,7 @@ try:
 except:
     pass 
     # print('Warning: kornia is not installed. This package is only required by CaDDN')
-
+from icecream import ic 
 
 
 def build_network(model_cfg, num_class, dataset):

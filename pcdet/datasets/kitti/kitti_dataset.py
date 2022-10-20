@@ -32,6 +32,7 @@ class KittiDataset(DatasetTemplate):
         self.sample_id_list = [x.strip() for x in open(split_dir).readlines()] if split_dir.exists() else None
 
         self.kitti_infos = []
+        # import pdb;pdb.set_trace()
         self.include_kitti_data(self.mode)
 
     def include_kitti_data(self, mode):
