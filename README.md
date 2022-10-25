@@ -22,6 +22,7 @@ CUDA_VISIBLE_DEVICES=1 python test.py --cfg_file ./cfgs/kitti_models/mvlidarnet.
 加入了mvlidarnet_center.yaml配置文件，更换了mvldiarnet的head，精度更高，可以接近pointpillar的精度（需要在数据集里加入地面信息）
 
 2022/10/25 v2.1
+
 加入了新的iou loss和centerhead的iou aware分支
 
 
