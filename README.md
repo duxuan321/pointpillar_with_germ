@@ -29,7 +29,7 @@ CUDA_VISIBLE_DEVICES=1 python test.py --cfg_file ./cfgs/kitti_models/mvlidarnet.
 以下模块在配置文件中使用
 
 #### 4.1 手工特征提取代替pillar scatter
-"""
+```
 DATA_PROCESSOR:
     - NAME: mask_points_and_boxes_outside_range
       REMOVE_OUTSIDE_BOXES: True
@@ -56,10 +56,11 @@ MODEL:
 
     BACKBONE_2D:
         NAME: BaseBEVBackbone
-"""
+```
 
         
 #### 4.2 center head 的label assignment改进版本
+```
 MODEL:
     NAME: CenterPoint
     ...
@@ -75,8 +76,10 @@ MODEL:
             MIN_RADIUS: 2
 
             LABEL_ASSIGN_FLAG: v2    # 加入这一行
-            
+```
+
 #### 4.3 更换maxpooling后处理
+```
 MODEL:
     NAME: CenterPoint
     ...
@@ -87,8 +90,10 @@ MODEL:
         POST_PROCESSING:
             POSTPROCESS_TYPE: nms    
             # POSTPROCESS_TYPE: maxpooling    # 第二种后处理方式：maxpooling
-            
+```
+
 #### 4.4 iou loss
+```
 MODEL:
     NAME: CenterPoint
 
@@ -96,9 +101,12 @@ MODEL:
 
     WITH_IOU_LOSS: True  # 使用iou loss
     IOU_WEIGHT: 2   # iou_loss权重
+```
+
     
 #### 4.5 使用iou aware(center head)目前还在实验阶段
 以下标注IOU_AWARE的都要加上
+```
 MODEL:
     NAME: CenterPoint
     ...
@@ -161,3 +169,4 @@ MODEL:
 
     WITH_IOU_AWARE_LOSS: True   # IOU_AWARE
     IOU_AWARE_WEIGHT: 1      # IOU_AWARE
+```
