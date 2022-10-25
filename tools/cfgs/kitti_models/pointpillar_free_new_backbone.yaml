@@ -2,8 +2,7 @@ CLASS_NAMES: ['Car', 'Pedestrian', 'Cyclist']
 
 DATA_CONFIG: 
     _BASE_CONFIG_: cfgs/dataset_configs/kitti_dataset.yaml
-    # POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
-    POINT_CLOUD_RANGE: [0, -39.68, -3, 69.12, 39.68, 1]  
+    POINT_CLOUD_RANGE: [0, -39.68, -3, 69.12, 39.68, 1]
     DATA_PROCESSOR:
         - NAME: mask_points_and_boxes_outside_range
           REMOVE_OUTSIDE_BOXES: True
@@ -14,16 +13,19 @@ DATA_CONFIG:
             'test': False
           }
 
-        - NAME: transform_points_to_bev
-          # VOXEL_SIZE: [0.1, 0.1, 4]
+        - NAME: transform_points_to_voxels
           VOXEL_SIZE: [0.16, 0.16, 4]
           # VOXEL_SIZE: [0.08, 0.08, 4]
-
+          MAX_POINTS_PER_VOXEL: 32
+          MAX_NUMBER_OF_VOXELS: {
+            'train': 16000,
+            'test': 40000
+          }
     DATA_AUGMENTOR:
         DISABLE_AUG_LIST: ['placeholder']
         AUG_CONFIG_LIST:
             - NAME: gt_sampling
-              USE_ROAD_PLANE: True
+              USE_ROAD_PLANE: False
               DB_INFO_PATH:
                   - kitti_dbinfos_train.pkl
               PREPARE: {
@@ -50,16 +52,18 @@ MODEL:
     NAME: CenterPoint
 
     VFE:
-        NAME: PlaceHolderVFE
-    
+        NAME: PillarVFE
+        WITH_DISTANCE: False
+        USE_ABSLOTE_XYZ: True
+        USE_NORM: True
+        NUM_FILTERS: [64]
+
     MAP_TO_BEV:
-        NAME: BEV_mvlidarnet
-        NUM_BEV_FEATURES: 3
+        NAME: PointPillarScatter
+        NUM_BEV_FEATURES: 64
 
     BACKBONE_2D:
-        NAME: MVLidarNetBackbone
-        MULTI_INPUT_CHANNELS: [4, 7]
-        # MULTI_INPUT_CHANNELS: [5, 7]
+        NAME: YTXBackbone
 
     DENSE_HEAD:
         NAME: CenterHead
@@ -82,11 +86,10 @@ MODEL:
             }
 
         TARGET_ASSIGNER_CONFIG:
-            FEATURE_MAP_STRIDE: 4
+            FEATURE_MAP_STRIDE: 2
             NUM_MAX_OBJS: 500
             GAUSSIAN_OVERLAP: 0.1
             MIN_RADIUS: 2
-            # LABEL_ASSIGN_FLAG: v2
 
         LOSS_CONFIG:
             LOSS_WEIGHTS: {
@@ -96,17 +99,14 @@ MODEL:
             }
 
         POST_PROCESSING:
-            POSTPROCESS_TYPE: nms    
-            # POSTPROCESS_TYPE: maxpooling    # 第二种后处理方式：非nms
             SCORE_THRESH: 0.1
-            POST_CENTER_LIMIT_RANGE: [0, -39.68, -3, 69.12, 39.68, 1]  
+            POST_CENTER_LIMIT_RANGE: [-75.2, -75.2, -2, 75.2, 75.2, 4]
             MAX_OBJ_PER_SAMPLE: 500
             NMS_CONFIG:
                 NMS_TYPE: nms_gpu
                 NMS_THRESH: 0.7
                 NMS_PRE_MAXSIZE: 4096
                 NMS_POST_MAXSIZE: 500
-
 
     POST_PROCESSING:
         RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
@@ -121,13 +121,10 @@ MODEL:
             NMS_THRESH: 0.01
             NMS_PRE_MAXSIZE: 4096
             NMS_POST_MAXSIZE: 500
-    
-    EXPORT_ONNX: False  # 这个参数有两个都需要修改（2/2）
-    # WITH_IOU_LOSS: True  # 使用iou loss
-    # IOU_WEIGHT: 2   # iou_loss权重
+
 
 OPTIMIZATION:
-    BATCH_SIZE_PER_GPU: 16
+    BATCH_SIZE_PER_GPU: 4
     NUM_EPOCHS: 80
 
     OPTIMIZER: adam_onecycle

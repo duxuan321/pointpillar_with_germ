@@ -12,6 +12,8 @@ from .center_head_iou_aware import CenterHead_iou_aware
 from .anchor_free_head import AnchorFreeSingle
 from .anchor_free_head_v2 import AnchorFreeSingleV2
 
+from .anchor_single_iou_aware import IouAwareHeadSingle
+
 
 __all__ = {
     'AnchorHeadTemplate': AnchorHeadTemplate,
@@ -25,4 +27,5 @@ __all__ = {
     'CenterHead_iou_aware': CenterHead_iou_aware, 
     'AnchorFreeSingle': AnchorFreeSingle,
     'AnchorFreeSingleV2': AnchorFreeSingleV2,
+    'IouAwareHeadSingle':IouAwareHeadSingle,
 }

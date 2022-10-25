@@ -492,6 +492,9 @@ def get_points_in_box(points, gt_box):
 
 
 def get_pyramids(boxes):
+    """
+        获取每个boxes的五个面（除了底部）
+    """
     pyramid_orders = np.array([
         [0, 1, 5, 4],
         [4, 5, 6, 7],
@@ -533,6 +536,9 @@ def points_in_pyramids_mask(points, pyramids):
 
 
 def local_pyramid_dropout(gt_boxes, points, dropout_prob, pyramids=None):
+    """
+       随机丢掉某块金字塔 
+    """
     if pyramids is None:
         pyramids = get_pyramids(gt_boxes).reshape([-1, 6, 5, 3])  # each six surface of boxes: [num_boxes, 6, 15=3*5]
     drop_pyramid_indices = np.random.randint(0, 6, (pyramids.shape[0]))
@@ -549,6 +555,9 @@ def local_pyramid_dropout(gt_boxes, points, dropout_prob, pyramids=None):
 
 
 def local_pyramid_sparsify(gt_boxes, points, prob, max_num_pts, pyramids=None):
+    """
+
+    """
     if pyramids is None:
         pyramids = get_pyramids(gt_boxes).reshape([-1, 6, 5, 3])  # each six surface of boxes: [num_boxes, 6, 15=3*5]
     if pyramids.shape[0] > 0:

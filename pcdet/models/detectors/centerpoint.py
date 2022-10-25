@@ -7,7 +7,9 @@ class CenterPoint(Detector3DTemplate):
         self.module_list = self.build_networks()
         self.export_onnx = model_cfg.get("EXPORT_ONNX",False)
         self.with_iou_loss = model_cfg.get("WITH_IOU_LOSS",False)
+        self.with_iou_aware_loss = model_cfg.get("WITH_IOU_AWARE_LOSS",False)
         self.iou_weight = model_cfg.get("IOU_WEIGHT",1)
+        self.iou_aware_weight = model_cfg.get("IOU_AWARE_WEIGHT",1)
 
 
     def forward(self, batch_dict):
@@ -32,6 +34,8 @@ class CenterPoint(Detector3DTemplate):
 
         if self.with_iou_loss:
             loss_rpn, tb_dict = self.dense_head.get_loss_with_iou(self.iou_weight)
+        elif self.with_iou_aware_loss:
+            loss_rpn, tb_dict = self.dense_head.get_loss_with_iou_aware(self.iou_aware_weight)
         else:
             loss_rpn, tb_dict = self.dense_head.get_loss()
         tb_dict = {

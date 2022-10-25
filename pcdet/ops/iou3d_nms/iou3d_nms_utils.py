@@ -9,6 +9,28 @@ from ...utils import common_utils
 from . import iou3d_nms_cuda
 
 
+# 2022/10/17
+def boxes_iou3d_align(boxes_a, boxes_b):
+    """
+    Args:
+        boxes_a: (N, 7) [x, y, z, dx, dy, dz, heading]
+        boxes_b: (N, 7) [x, y, z, dx, dy, dz, heading]
+
+    Returns:
+        ans_iou: (N,)
+    """
+    assert boxes_a.shape[1] == boxes_b.shape[1] == 7
+    assert boxes_a.shape[0] == boxes_b.shape[0]
+    # ans_iou = torch.cuda.FloatTensor(boxes_a.shape[0], ).zero_()
+    # iou3d_nms_cuda.boxes_overlap_3d_gpu(boxes_a.contiguous(), boxes_b.contiguous(), ans_iou)
+    box_a = boxes_a.clone()
+    box_b = boxes_b.clone()
+
+    ans_iou = boxes_bev_iou_cpu(box_a.cpu(), box_b.cpu())
+    ans_iou = ans_iou[range(boxes_a.shape[0]),range(boxes_a.shape[0])].to(boxes_a.device)
+    # print(type(ans_iou))
+    return ans_iou
+
 def boxes_bev_iou_cpu(boxes_a, boxes_b):
     """
     Args:

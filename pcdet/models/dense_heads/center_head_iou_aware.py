@@ -7,11 +7,13 @@ from torch.nn.init import kaiming_normal_
 from ..model_utils import model_nms_utils
 from ..model_utils import centernet_utils
 from ...utils import loss_utils
+from ...ops.iou3d_nms import iou3d_nms_utils
 
 import torch.nn.functional as F
 
 """
-加入了CIA-SSD中的iou aware loss
+    加入了CIA-SSD中的iou aware loss
+    需要在配置文件里面加上"iou"分支
 """
 class SeparateHead(nn.Module):
     def __init__(self, input_channels, sep_head_dict, init_bias=-2.19, use_bias=False):
@@ -107,6 +109,7 @@ class CenterHead_iou_aware(nn.Module):
         self.add_module('hm_loss_func', loss_utils.FocalLossCenterNet())
         self.add_module('reg_loss_func', loss_utils.RegLossCenterNet())
         self.add_module('iou_loss_func', loss_utils.IOULoss())
+        # IOU_AWARE
         self.add_module('iou_aware_loss_func', loss_utils.RegLossCenterNet())
 
     def assign_target_of_single_head(
@@ -273,412 +276,6 @@ class CenterHead_iou_aware(nn.Module):
 
         return heatmap, ret_boxes, inds, mask
 
-    def assign_target_of_single_head_v3(
-            self, num_classes, gt_boxes, feature_map_size, feature_map_stride, num_max_objs=500,
-            gaussian_overlap=0.1, min_radius=2
-    ):
-        """
-        这个版本在中心点附近也分配了一些正例框,这里一共有9个
-        Args:
-            gt_boxes: (N, 8)
-            feature_map_size: (2), [x, y]
-
-        Returns:
-
-        """
-        # print("！！！！！！！！！！！！！")
-        heatmap = gt_boxes.new_zeros(num_classes, feature_map_size[1], feature_map_size[0])
-        ret_boxes = gt_boxes.new_zeros((9*num_max_objs, gt_boxes.shape[-1] - 1 + 1))
-        inds = gt_boxes.new_zeros(9*num_max_objs).long()
-        inds_center = gt_boxes.new_zeros(9*num_max_objs).long()
-        mask = gt_boxes.new_zeros(9*num_max_objs).long()
-
-        x, y, z = gt_boxes[:, 0], gt_boxes[:, 1], gt_boxes[:, 2]
-        coord_x = (x - self.point_cloud_range[0]) / self.voxel_size[0] / feature_map_stride
-        coord_y = (y - self.point_cloud_range[1]) / self.voxel_size[1] / feature_map_stride
-        coord_x = torch.clamp(coord_x, min=0, max=feature_map_size[0] - 0.5)  # bugfixed: 1e-6 does not work for center.int()
-        coord_y = torch.clamp(coord_y, min=0, max=feature_map_size[1] - 0.5)  #
-        center = torch.cat((coord_x[:, None], coord_y[:, None]), dim=-1)
-        center_int = center.int()
-        center_int_float = center_int.float()
-
-        dx, dy, dz = gt_boxes[:, 3], gt_boxes[:, 4], gt_boxes[:, 5]
-        dx = dx / self.voxel_size[0] / feature_map_stride
-        dy = dy / self.voxel_size[1] / feature_map_stride
-
-        radius = centernet_utils.gaussian_radius(dx, dy, min_overlap=gaussian_overlap)
-        radius = torch.clamp_min(radius.int(), min=min_radius)
-
-        for k in range(min(num_max_objs, gt_boxes.shape[0])):
-            if dx[k] <= 0 or dy[k] <= 0:
-                continue
-
-            if not (0 <= center_int[k][0] <= feature_map_size[0] and 0 <= center_int[k][1] <= feature_map_size[1]):
-                continue
-
-            cur_class_id = (gt_boxes[k, -1] - 1).long()
-            centernet_utils.draw_gaussian_to_heatmap(heatmap[cur_class_id], center[k], radius[k].item())
-            # centernet_utils.draw_gaussian_to_heatmap_v2(heatmap[cur_class_id], center[k], [dx[k],dy[k]])
-            # print("??",heatmap[cur_class_id,int(center[k][1])-5:int(center[k][1])+6,(int(center[k][0])-5):int(center[k][0])+6])
-
-            inds[k*9] = center_int[k, 1] * feature_map_size[0] + center_int[k, 0]
-            mask[k*9:k*9+9] = 1
-            # print(gt_boxes[k, 3:6])
-
-            ret_boxes[k*9:k*9+9, 0:2] = center[k] - center_int_float[k].float()
-            ret_boxes[k*9:k*9+9, 2] = z[k]
-            ret_boxes[k*9:k*9+9, 3:6] = gt_boxes[k, 3:6].log()
-            ret_boxes[k*9:k*9+9, 6] = torch.cos(gt_boxes[k, 6])
-            ret_boxes[k*9:k*9+9, 7] = torch.sin(gt_boxes[k, 6])
-
-            care_rate = 4
-            if (self.voxel_size[0] * feature_map_stride > gt_boxes[k,4]/care_rate):
-                    mask[k*9+1:k*9+3] = 0
-                    # print("hello")
-            else:
-                if (center_int[k, 0] -1 >=0):
-                    inds[k*9+1] = center_int[k, 1] * feature_map_size[0] + center_int[k, 0] -1
-                    ret_boxes[k*9+1, 0] += 1
-                    # ret_boxes[k*5+1, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+1] = 0
-
-                if (center_int[k, 0] + 1 < feature_map_size[0]):
-                    inds[k*9+2] = center_int[k, 1] * feature_map_size[0] + center_int[k, 0] + 1
-                    ret_boxes[k*9+2, 0] -= 1
-                    # ret_boxes[k*5+2, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+2] = 0
-
-            if (self.voxel_size[1] * feature_map_stride > gt_boxes[k,3]/care_rate):
-                    mask[k*9+3:k*9+5] = 0
-                    # print("hello")
-            else:
-                if (center_int[k, 1] -1 >=0):
-                    inds[k*9+3] = (center_int[k, 1] - 1) * feature_map_size[0] + center_int[k, 0]
-                    ret_boxes[k*9+3, 1] += 1
-                    # ret_boxes[k*5+3, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+3] = 0
-
-                if (center_int[k, 1] +1 < feature_map_size[1]):
-                    inds[k*9+4] = (center_int[k, 1] +1 ) * feature_map_size[0] + center_int[k, 0]
-                    ret_boxes[k*9+4, 1] -= 1
-                    # ret_boxes[k*5+4, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+4] = 0
-
-            # 加入左上左下右上右下四个label
-            if (self.voxel_size[1] * feature_map_stride > gt_boxes[k,3]/care_rate and 
-                        self.voxel_size[0] * feature_map_stride > gt_boxes[k,4]/care_rate):
-                    mask[k*9+5:k*9+9] = 0
-                    # print("hello")
-            else:
-                if (center_int[k, 0] -1 >=0 and center_int[k, 1] -1 >=0):
-                    inds[k*9+5] = (center_int[k, 1] - 1) * feature_map_size[0] + center_int[k, 0] -1
-                    ret_boxes[k*9+5, 0] += 1
-                    ret_boxes[k*9+5, 1] += 1
-                    # ret_boxes[k*5+3, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+5] = 0
-
-                if (center_int[k, 0] + 1 <feature_map_size[0] and center_int[k, 1] -1 >=0):
-                    inds[k*9+6] = (center_int[k, 1] - 1) * feature_map_size[0] + center_int[k, 0] +1
-                    ret_boxes[k*9+6, 0] -= 1
-                    ret_boxes[k*9+6, 1] += 1
-                else:
-                    mask[k*9+6] = 0
-
-                if (center_int[k, 0] -1 >=0 and center_int[k, 1] + 1 < feature_map_size[1]):
-                    inds[k*9+7] = (center_int[k, 1] + 1) * feature_map_size[0] + center_int[k, 0] -1
-                    ret_boxes[k*9+7, 0] += 1
-                    ret_boxes[k*9+7, 1] -= 1
-                    # ret_boxes[k*5+3, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+7] = 0
-
-                if (center_int[k, 0] + 1 <feature_map_size[0] and center_int[k, 1] + 1 < feature_map_size[1]):
-                    inds[k*9+8] = (center_int[k, 1] + 1) * feature_map_size[0] + center_int[k, 0] +1
-                    ret_boxes[k*9+8, 0] -= 1
-                    ret_boxes[k*9+8, 1] -= 1
-                else:
-                    mask[k*9+8] = 0
-
-            if gt_boxes.shape[1] > 8:
-                ret_boxes[k*9:k*9+9, 8:] = gt_boxes[k, 7:-1]
-
-        return heatmap, ret_boxes, inds, mask
-    
-    def assign_target_of_single_head_v4(
-            self, num_classes, gt_boxes, feature_map_size, feature_map_stride, num_max_objs=500,
-            gaussian_overlap=0.1, min_radius=2
-    ):
-        """
-        版本二：这个版本在中心点附近也分配了一些正例框，这里一共有五个，分别为中心+上下左右
-        Args:
-            gt_boxes: (N, 8)
-            feature_map_size: (2), [x, y]
-
-        Returns:
-
-        """
-        # print("???V4V4V4V4V")
-        heatmap = gt_boxes.new_zeros(num_classes, feature_map_size[1], feature_map_size[0])
-        ret_boxes = gt_boxes.new_zeros((5*num_max_objs, gt_boxes.shape[-1] - 1 + 1))
-        inds = gt_boxes.new_zeros(5*num_max_objs).long()
-        mask = gt_boxes.new_zeros(5*num_max_objs).long()
-        ret_boxes_center = gt_boxes.new_zeros((num_max_objs, gt_boxes.shape[-1] - 1 + 1))
-        inds_center = gt_boxes.new_zeros(num_max_objs).long()
-        mask_center = gt_boxes.new_zeros(num_max_objs).long()
-
-        x, y, z = gt_boxes[:, 0], gt_boxes[:, 1], gt_boxes[:, 2]
-        coord_x = (x - self.point_cloud_range[0]) / self.voxel_size[0] / feature_map_stride
-        coord_y = (y - self.point_cloud_range[1]) / self.voxel_size[1] / feature_map_stride
-        coord_x = torch.clamp(coord_x, min=0, max=feature_map_size[0] - 0.5)  # bugfixed: 1e-6 does not work for center.int()
-        coord_y = torch.clamp(coord_y, min=0, max=feature_map_size[1] - 0.5)  #
-        center = torch.cat((coord_x[:, None], coord_y[:, None]), dim=-1)
-        center_int = center.int()
-        center_int_float = center_int.float()
-
-        dx, dy, dz = gt_boxes[:, 3], gt_boxes[:, 4], gt_boxes[:, 5]
-        dx = dx / self.voxel_size[0] / feature_map_stride
-        dy = dy / self.voxel_size[1] / feature_map_stride
-
-        radius = centernet_utils.gaussian_radius(dx, dy, min_overlap=gaussian_overlap)
-        radius = torch.clamp_min(radius.int(), min=min_radius)
-
-        for k in range(min(num_max_objs, gt_boxes.shape[0])):
-            if dx[k] <= 0 or dy[k] <= 0:
-                continue
-
-            if not (0 <= center_int[k][0] <= feature_map_size[0] and 0 <= center_int[k][1] <= feature_map_size[1]):
-                continue
-
-            cur_class_id = (gt_boxes[k, -1] - 1).long()
-            centernet_utils.draw_gaussian_to_heatmap(heatmap[cur_class_id], center[k], radius[k].item())
-            # centernet_utils.draw_gaussian_to_heatmap_v2(heatmap[cur_class_id], center[k], [dx[k],dy[k]])
-            # print("??",heatmap[cur_class_id,int(center[k][1])-5:int(center[k][1])+6,(int(center[k][0])-5):int(center[k][0])+6])
-
-            inds[k*5] = center_int[k, 1] * feature_map_size[0] + center_int[k, 0]
-            mask[k*5:k*5+5] = 1
-            inds_center[k] = center_int[k, 1] * feature_map_size[0] + center_int[k, 0]
-            mask_center[k] = 1
-            # print(gt_boxes[k, 3:6])
-
-            ret_boxes[k*5:k*5+5, 0:2] = center[k] - center_int_float[k].float()
-            ret_boxes[k*5:k*5+5, 2] = z[k]
-            ret_boxes[k*5:k*5+5, 3:6] = gt_boxes[k, 3:6].log()
-            ret_boxes[k*5:k*5+5, 6] = torch.cos(gt_boxes[k, 6])
-            ret_boxes[k*5:k*5+5, 7] = torch.sin(gt_boxes[k, 6])
-
-            ret_boxes_center[k, 0:2] = center[k] - center_int_float[k].float()
-            ret_boxes_center[k, 2] = z[k]
-            ret_boxes_center[k, 3:6] = gt_boxes[k, 3:6].log()
-            ret_boxes_center[k, 6] = torch.cos(gt_boxes[k, 6])
-            ret_boxes_center[k, 7] = torch.sin(gt_boxes[k, 6])
-
-            if (self.voxel_size[0] * feature_map_stride > gt_boxes[k,4]/4):
-                    mask[k*5+1:k*5+3] = 0
-                    # print("hello")
-            else:
-                if (center_int[k, 0] -1 >=0):
-                    inds[k*5+1] = center_int[k, 1] * feature_map_size[0] + center_int[k, 0] -1
-                    ret_boxes[k*5+1, 0] += 1
-                    # ret_boxes[k*5+1, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*5+1] = 0
-
-                if (center_int[k, 0] + 1 < feature_map_size[0]):
-                    inds[k*5+2] = center_int[k, 1] * feature_map_size[0] + center_int[k, 0] + 1
-                    ret_boxes[k*5+2, 0] -= 1
-                    # ret_boxes[k*5+2, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*5+2] = 0
-
-            if (self.voxel_size[1] * feature_map_stride > gt_boxes[k,3]/4):
-                    mask[k*5+3:k*5+5] = 0
-                    # print("hello")
-            else:
-                if (center_int[k, 1] -1 >=0):
-                    inds[k*5+3] = (center_int[k, 1] - 1) * feature_map_size[0] + center_int[k, 0]
-                    ret_boxes[k*5+3, 1] += 1
-                    # ret_boxes[k*5+3, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*5+3] = 0
-
-                if (center_int[k, 1] +1 < feature_map_size[1]):
-                    inds[k*5+4] = (center_int[k, 1] +1 ) * feature_map_size[0] + center_int[k, 0]
-                    ret_boxes[k*5+4, 1] -= 1
-                    # ret_boxes[k*5+4, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*5+4] = 0
-
-            if gt_boxes.shape[1] > 8:
-                ret_boxes[k*5:k*5+5, 8:] = gt_boxes[k, 7:-1]
-                ret_boxes_center[k, 8:] = gt_boxes[k, 7:-1]
-        # print("???",inds.shape,mask.shape)
-        inds = torch.cat([inds_center,inds])
-        mask = torch.cat([mask_center,mask])
-        ret_boxes = torch.cat([ret_boxes_center,ret_boxes],dim = 0)
-        # print(inds.shape,mask.shape,ret_boxes.shape)
-
-        return heatmap, ret_boxes, inds, mask
-
-
-    def assign_target_of_single_head_v5(
-            self, num_classes, gt_boxes, feature_map_size, feature_map_stride, num_max_objs=500,
-            gaussian_overlap=0.1, min_radius=2
-    ):
-        """
-        这个版本在中心点附近也分配了一些正例框,这里一共有9个
-        Args:
-            gt_boxes: (N, 8)
-            feature_map_size: (2), [x, y]
-
-        Returns:
-
-        """
-        # print("！！！！！！！！！！！！！")
-        heatmap = gt_boxes.new_zeros(num_classes, feature_map_size[1], feature_map_size[0])
-        ret_boxes = gt_boxes.new_zeros((9*num_max_objs, gt_boxes.shape[-1] - 1 + 1))
-        inds = gt_boxes.new_zeros(9*num_max_objs).long()
-        inds_center = gt_boxes.new_zeros(9*num_max_objs).long()
-        mask = gt_boxes.new_zeros(9*num_max_objs).long()
-        ret_boxes_center = gt_boxes.new_zeros((num_max_objs, gt_boxes.shape[-1] - 1 + 1))
-        inds_center = gt_boxes.new_zeros(num_max_objs).long()
-        mask_center = gt_boxes.new_zeros(num_max_objs).long()
-
-        x, y, z = gt_boxes[:, 0], gt_boxes[:, 1], gt_boxes[:, 2]
-        coord_x = (x - self.point_cloud_range[0]) / self.voxel_size[0] / feature_map_stride
-        coord_y = (y - self.point_cloud_range[1]) / self.voxel_size[1] / feature_map_stride
-        coord_x = torch.clamp(coord_x, min=0, max=feature_map_size[0] - 0.5)  # bugfixed: 1e-6 does not work for center.int()
-        coord_y = torch.clamp(coord_y, min=0, max=feature_map_size[1] - 0.5)  #
-        center = torch.cat((coord_x[:, None], coord_y[:, None]), dim=-1)
-        center_int = center.int()
-        center_int_float = center_int.float()
-
-        dx, dy, dz = gt_boxes[:, 3], gt_boxes[:, 4], gt_boxes[:, 5]
-        dx = dx / self.voxel_size[0] / feature_map_stride
-        dy = dy / self.voxel_size[1] / feature_map_stride
-
-        radius = centernet_utils.gaussian_radius(dx, dy, min_overlap=gaussian_overlap)
-        radius = torch.clamp_min(radius.int(), min=min_radius)
-
-        for k in range(min(num_max_objs, gt_boxes.shape[0])):
-            if dx[k] <= 0 or dy[k] <= 0:
-                continue
-
-            if not (0 <= center_int[k][0] <= feature_map_size[0] and 0 <= center_int[k][1] <= feature_map_size[1]):
-                continue
-
-            cur_class_id = (gt_boxes[k, -1] - 1).long()
-            centernet_utils.draw_gaussian_to_heatmap(heatmap[cur_class_id], center[k], radius[k].item())
-            # centernet_utils.draw_gaussian_to_heatmap_v2(heatmap[cur_class_id], center[k], [dx[k],dy[k]])
-            # print("??",heatmap[cur_class_id,int(center[k][1])-5:int(center[k][1])+6,(int(center[k][0])-5):int(center[k][0])+6])
-
-            inds[k*9] = center_int[k, 1] * feature_map_size[0] + center_int[k, 0]
-            mask[k*9:k*9+9] = 1
-            inds_center[k] = center_int[k, 1] * feature_map_size[0] + center_int[k, 0]
-            mask_center[k] = 1
-            # print(gt_boxes[k, 3:6])
-
-            ret_boxes[k*9:k*9+9, 0:2] = center[k] - center_int_float[k].float()
-            ret_boxes[k*9:k*9+9, 2] = z[k]
-            ret_boxes[k*9:k*9+9, 3:6] = gt_boxes[k, 3:6].log()
-            ret_boxes[k*9:k*9+9, 6] = torch.cos(gt_boxes[k, 6])
-            ret_boxes[k*9:k*9+9, 7] = torch.sin(gt_boxes[k, 6])
-
-            ret_boxes_center[k, 0:2] = center[k] - center_int_float[k].float()
-            ret_boxes_center[k, 2] = z[k]
-            ret_boxes_center[k, 3:6] = gt_boxes[k, 3:6].log()
-            ret_boxes_center[k, 6] = torch.cos(gt_boxes[k, 6])
-            ret_boxes_center[k, 7] = torch.sin(gt_boxes[k, 6])
-
-            care_rate = 4
-            if (self.voxel_size[0] * feature_map_stride > gt_boxes[k,4]/care_rate):
-                    mask[k*9+1:k*9+3] = 0
-                    # print("hello")
-            else:
-                if (center_int[k, 0] -1 >=0):
-                    inds[k*9+1] = center_int[k, 1] * feature_map_size[0] + center_int[k, 0] -1
-                    ret_boxes[k*9+1, 0] += 1
-                    # ret_boxes[k*5+1, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+1] = 0
-
-                if (center_int[k, 0] + 1 < feature_map_size[0]):
-                    inds[k*9+2] = center_int[k, 1] * feature_map_size[0] + center_int[k, 0] + 1
-                    ret_boxes[k*9+2, 0] -= 1
-                    # ret_boxes[k*5+2, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+2] = 0
-
-            if (self.voxel_size[1] * feature_map_stride > gt_boxes[k,3]/care_rate):
-                    mask[k*9+3:k*9+5] = 0
-                    # print("hello")
-            else:
-                if (center_int[k, 1] -1 >=0):
-                    inds[k*9+3] = (center_int[k, 1] - 1) * feature_map_size[0] + center_int[k, 0]
-                    ret_boxes[k*9+3, 1] += 1
-                    # ret_boxes[k*5+3, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+3] = 0
-
-                if (center_int[k, 1] +1 < feature_map_size[1]):
-                    inds[k*9+4] = (center_int[k, 1] +1 ) * feature_map_size[0] + center_int[k, 0]
-                    ret_boxes[k*9+4, 1] -= 1
-                    # ret_boxes[k*5+4, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+4] = 0
-
-            # 加入左上左下右上右下四个label
-            if (self.voxel_size[1] * feature_map_stride > gt_boxes[k,3]/care_rate and 
-                        self.voxel_size[0] * feature_map_stride > gt_boxes[k,4]/care_rate):
-                    mask[k*9+5:k*9+9] = 0
-                    # print("hello")
-            else:
-                if (center_int[k, 0] -1 >=0 and center_int[k, 1] -1 >=0):
-                    inds[k*9+5] = (center_int[k, 1] - 1) * feature_map_size[0] + center_int[k, 0] -1
-                    ret_boxes[k*9+5, 0] += 1
-                    ret_boxes[k*9+5, 1] += 1
-                    # ret_boxes[k*5+3, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+5] = 0
-
-                if (center_int[k, 0] + 1 <feature_map_size[0] and center_int[k, 1] -1 >=0):
-                    inds[k*9+6] = (center_int[k, 1] - 1) * feature_map_size[0] + center_int[k, 0] +1
-                    ret_boxes[k*9+6, 0] -= 1
-                    ret_boxes[k*9+6, 1] += 1
-                else:
-                    mask[k*9+6] = 0
-
-                if (center_int[k, 0] -1 >=0 and center_int[k, 1] + 1 < feature_map_size[1]):
-                    inds[k*9+7] = (center_int[k, 1] + 1) * feature_map_size[0] + center_int[k, 0] -1
-                    ret_boxes[k*9+7, 0] += 1
-                    ret_boxes[k*9+7, 1] -= 1
-                    # ret_boxes[k*5+3, 3:6] = gt_boxes[k, 3:6].log()
-                else:
-                    mask[k*9+7] = 0
-
-                if (center_int[k, 0] + 1 <feature_map_size[0] and center_int[k, 1] + 1 < feature_map_size[1]):
-                    inds[k*9+8] = (center_int[k, 1] + 1) * feature_map_size[0] + center_int[k, 0] +1
-                    ret_boxes[k*9+8, 0] -= 1
-                    ret_boxes[k*9+8, 1] -= 1
-                else:
-                    mask[k*9+8] = 0
-
-            if gt_boxes.shape[1] > 8:
-                ret_boxes[k*9:k*9+9, 8:] = gt_boxes[k, 7:-1]
-                ret_boxes_center[k, 8:] = gt_boxes[k, 7:-1]
-        
-        # print("???",inds.shape,mask.shape)
-        inds = torch.cat([inds_center,inds])
-        mask = torch.cat([mask_center,mask])
-        ret_boxes = torch.cat([ret_boxes_center,ret_boxes],dim = 0)
-        # print(inds.shape,mask.shape,ret_boxes.shape)
-
-        return heatmap, ret_boxes, inds, mask
-
     def assign_targets(self, gt_boxes, feature_map_size=None, **kwargs):
         """
         Args:
@@ -739,30 +336,30 @@ class CenterHead_iou_aware(nn.Module):
                         gaussian_overlap=target_assigner_cfg.GAUSSIAN_OVERLAP,
                         min_radius=target_assigner_cfg.MIN_RADIUS,
                     )
-                elif self.label_assign_flag=='v3':
-                    heatmap, ret_boxes, inds, mask = self.assign_target_of_single_head_v3(
-                        num_classes=len(cur_class_names), gt_boxes=gt_boxes_single_head.cpu(),
-                        feature_map_size=feature_map_size, feature_map_stride=target_assigner_cfg.FEATURE_MAP_STRIDE,
-                        num_max_objs=target_assigner_cfg.NUM_MAX_OBJS,
-                        gaussian_overlap=target_assigner_cfg.GAUSSIAN_OVERLAP,
-                        min_radius=target_assigner_cfg.MIN_RADIUS,
-                    )
-                elif self.label_assign_flag=='v4':
-                    heatmap, ret_boxes, inds, mask = self.assign_target_of_single_head_v4(
-                        num_classes=len(cur_class_names), gt_boxes=gt_boxes_single_head.cpu(),
-                        feature_map_size=feature_map_size, feature_map_stride=target_assigner_cfg.FEATURE_MAP_STRIDE,
-                        num_max_objs=target_assigner_cfg.NUM_MAX_OBJS,
-                        gaussian_overlap=target_assigner_cfg.GAUSSIAN_OVERLAP,
-                        min_radius=target_assigner_cfg.MIN_RADIUS,
-                    )
-                elif self.label_assign_flag=='v5':
-                    heatmap, ret_boxes, inds, mask = self.assign_target_of_single_head_v5(
-                        num_classes=len(cur_class_names), gt_boxes=gt_boxes_single_head.cpu(),
-                        feature_map_size=feature_map_size, feature_map_stride=target_assigner_cfg.FEATURE_MAP_STRIDE,
-                        num_max_objs=target_assigner_cfg.NUM_MAX_OBJS,
-                        gaussian_overlap=target_assigner_cfg.GAUSSIAN_OVERLAP,
-                        min_radius=target_assigner_cfg.MIN_RADIUS,
-                    )
+                # elif self.label_assign_flag=='v3':
+                #     heatmap, ret_boxes, inds, mask = self.assign_target_of_single_head_v3(
+                #         num_classes=len(cur_class_names), gt_boxes=gt_boxes_single_head.cpu(),
+                #         feature_map_size=feature_map_size, feature_map_stride=target_assigner_cfg.FEATURE_MAP_STRIDE,
+                #         num_max_objs=target_assigner_cfg.NUM_MAX_OBJS,
+                #         gaussian_overlap=target_assigner_cfg.GAUSSIAN_OVERLAP,
+                #         min_radius=target_assigner_cfg.MIN_RADIUS,
+                #     )
+                # elif self.label_assign_flag=='v4':
+                #     heatmap, ret_boxes, inds, mask = self.assign_target_of_single_head_v4(
+                #         num_classes=len(cur_class_names), gt_boxes=gt_boxes_single_head.cpu(),
+                #         feature_map_size=feature_map_size, feature_map_stride=target_assigner_cfg.FEATURE_MAP_STRIDE,
+                #         num_max_objs=target_assigner_cfg.NUM_MAX_OBJS,
+                #         gaussian_overlap=target_assigner_cfg.GAUSSIAN_OVERLAP,
+                #         min_radius=target_assigner_cfg.MIN_RADIUS,
+                #     )
+                # elif self.label_assign_flag=='v5':
+                #     heatmap, ret_boxes, inds, mask = self.assign_target_of_single_head_v5(
+                #         num_classes=len(cur_class_names), gt_boxes=gt_boxes_single_head.cpu(),
+                #         feature_map_size=feature_map_size, feature_map_stride=target_assigner_cfg.FEATURE_MAP_STRIDE,
+                #         num_max_objs=target_assigner_cfg.NUM_MAX_OBJS,
+                #         gaussian_overlap=target_assigner_cfg.GAUSSIAN_OVERLAP,
+                #         min_radius=target_assigner_cfg.MIN_RADIUS,
+                #     )
 
                 heatmap_list.append(heatmap.to(gt_boxes_single_head.device))
                 target_boxes_list.append(ret_boxes.to(gt_boxes_single_head.device))
@@ -783,10 +380,12 @@ class CenterHead_iou_aware(nn.Module):
         pred_dicts = self.forward_ret_dict['pred_dicts']
         target_dicts = self.forward_ret_dict['target_dicts']
 
+        print("hello kitti")
         tb_dict = {}
         loss = 0
 
         for idx, pred_dict in enumerate(pred_dicts):
+            
             pred_dict['hm'] = self.sigmoid(pred_dict['hm'])
             hm_loss = self.hm_loss_func(pred_dict['hm'], target_dicts['heatmaps'][idx])
             hm_loss *= self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['cls_weight']
@@ -812,37 +411,73 @@ class CenterHead_iou_aware(nn.Module):
     加上iou loss的损失函数
     PS：需要在build_losses函数中加入iou loss的函数
     """
-    def get_loss_with_iou(self,iou_weight):
+    def get_loss_with_iou_aware(self,iou_weight):
         pred_dicts = self.forward_ret_dict['pred_dicts']
         target_dicts = self.forward_ret_dict['target_dicts']
 
         tb_dict = {}
         loss = 0
-
+        # print("???")
         for idx, pred_dict in enumerate(pred_dicts):
+            
             pred_dict['hm'] = self.sigmoid(pred_dict['hm'])
             hm_loss = self.hm_loss_func(pred_dict['hm'], target_dicts['heatmaps'][idx])
             hm_loss *= self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['cls_weight']
 
             target_boxes = target_dicts['target_boxes'][idx]
-            pred_boxes = torch.cat([pred_dict[head_name] for head_name in self.separate_head_cfg.HEAD_ORDER], dim=1)
-
+            batch_size = target_boxes.shape[0]
+            pred_boxes_with_iou = torch.cat([pred_dict[head_name] for head_name in self.separate_head_cfg.HEAD_ORDER], dim=1)
+            pred_boxes = pred_boxes_with_iou[:,:8,:,:]
+            pred_iou = pred_boxes_with_iou[:,8:,:,:]
+            
             reg_loss = self.reg_loss_func(
                 pred_boxes, target_dicts['masks'][idx], target_dicts['inds'][idx], target_boxes
             )
             loc_loss = (reg_loss * reg_loss.new_tensor(self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['code_weights'])).sum()
             loc_loss = loc_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['loc_weight']
 
-            # 加入iou aware loss
-            #1.解算出检测框，得到gt iou
-            
-            #2.
-            iou_aware_loss = self.iou_aware_loss_func(
-                pred_boxes, target_dicts['masks'][idx], target_dicts['inds'][idx], target_boxes
-            )
-            iou_aware_loss = iou_aware_loss * 1.0
+            ## IOU_AWARE:加入iou aware loss  ###########################################################################################
+            # 1.解算出检测框，得到gt iou
+            batch_hm = pred_dict['hm'].sigmoid()
+            batch_center = pred_dict['center']
+            batch_center_z = pred_dict['center_z']
+            batch_dim = pred_dict['dim'].exp()
+            batch_rot_cos = pred_dict['rot'][:, 0].unsqueeze(dim=1)
+            batch_rot_sin = pred_dict['rot'][:, 1].unsqueeze(dim=1)
+            batch_vel = pred_dict['vel'] if 'vel' in self.separate_head_cfg.HEAD_ORDER else None
 
-            loss += hm_loss + loc_loss + iou_loss*iou_weight
+            center_ = loss_utils._transpose_and_gather_feat(batch_center,target_dicts['inds'][idx])*self.feature_map_stride*self.voxel_size[0]
+            center_z_ = loss_utils._transpose_and_gather_feat(batch_center_z,target_dicts['inds'][idx])
+            dim_ = loss_utils._transpose_and_gather_feat(batch_dim,target_dicts['inds'][idx])
+            cos_ = loss_utils._transpose_and_gather_feat(batch_rot_cos,target_dicts['inds'][idx])
+            sin_ = loss_utils._transpose_and_gather_feat(batch_rot_sin,target_dicts['inds'][idx])
+            angle_ = torch.atan2(sin_, cos_)
+            final_pred_dicts = torch.cat([center_,center_z_,dim_,angle_],dim = -1)
+            final_pred_dicts = final_pred_dicts.view(-1,7)
+            final_pred_dicts = final_pred_dicts.detach()  # 这个很重要！！！！！！
+
+            # 解算gt box
+            final_target = target_boxes.clone()
+            final_target[:,:,:2] *= self.feature_map_stride*self.voxel_size[0]
+            final_target[:,:,3:6] = final_target[:,:,3:6].exp()
+            final_target[:,:,6:7] = torch.atan2(final_target[:,:,7:8], final_target[:,:,6:7])
+            final_target = final_target[:,:,:7].view(-1,7)
+            # print(final_pred_dicts.requires_grad,final_target.requires_grad)
+
+            iou_target = iou3d_nms_utils.boxes_iou3d_gpu(final_pred_dicts, final_target)
+            iou_target = iou_target[range(iou_target.shape[0]),range(iou_target.shape[0])].view(batch_size,-1,1)
+            # print("??",iou_target.shape,iou_target)
+            iou_target = 2 * iou_target - 1
+            iou_target = iou_target.detach()
+            
+            # 2.计算iou loss
+            iou_aware_loss = self.iou_aware_loss_func(
+                pred_iou, target_dicts['masks'][idx], target_dicts['inds'][idx], iou_target
+            )
+            iou_aware_loss = iou_aware_loss * iou_weight
+            ############################################## IOU_AWARE ####################################################################
+
+            loss += hm_loss + loc_loss + iou_aware_loss
             tb_dict['hm_loss_head_%d' % idx] = hm_loss.item()
             tb_dict['loc_loss_head_%d' % idx] = loc_loss.item()
             tb_dict['iou_aware_loss_head_%d' % idx] = iou_aware_loss.item()
@@ -861,6 +496,16 @@ class CenterHead_iou_aware(nn.Module):
         } for k in range(batch_size)]
         for idx, pred_dict in enumerate(pred_dicts):
             batch_hm = pred_dict['hm'].sigmoid()
+            
+            ## IOU_AWARE:用iou更新预测分数
+            # iou_pre = (pred_dict['iou']+1)*0.5
+            # iou_pre = torch.clamp(iou_pre, min=0, max=1.)
+            # batch_hm = torch.pow(batch_hm,0.7)*torch.pow(iou_pre,0.3)
+            # print("???",pred_dict['iou'].max())
+            # batch_hm /= batch_hm.max()
+            
+            # print("iou aware test：",iou_pre)
+
             batch_center = pred_dict['center']
             batch_center_z = pred_dict['center_z']
             batch_dim = pred_dict['dim'].exp()
@@ -960,6 +605,7 @@ class CenterHead_iou_aware(nn.Module):
             self.forward_ret_dict['target_dicts'] = target_dict
 
         self.forward_ret_dict['pred_dicts'] = pred_dicts
+        
 
         if not self.training or self.predict_boxes_when_training:
             if(self.postprocess=="nms"):

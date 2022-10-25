@@ -11,9 +11,75 @@ try:
 except:
     pass
 
+# 针对waymo数据集的5个维度信息进行bevmap
+@numba.jit
+def make_bev_map_norm_waymo(PointCloud, min_heightMap, max_heightMap, mean_intensityMap, mean_elongationMap,countMap,boundary):
+    """
+        版本三：针对waymo数据集的bev特征提取
+    """
+    for i in range(PointCloud.shape[0]):
+        h = np.int_(PointCloud[i, 0])
+        w = np.int_(PointCloud[i, 1])
+        # if h >= 0 and h < Height and w >= 0 and w < Width:
+        norm_z = (PointCloud[i,2] - boundary[2]) / (boundary[5] - boundary[2]) - 0.5
+        if min_heightMap[h, w] > norm_z:
+            min_heightMap[h, w] = norm_z 
+        if max_heightMap[h, w] < norm_z:
+            max_heightMap[h, w] = norm_z
+
+        mean_intensityMap[h, w] += PointCloud[i,3] - 0.5
+        mean_elongationMap[h, w] += PointCloud[i,4] - 0.5
+        countMap[h, w] += 1
+
+    return min_heightMap, max_heightMap, mean_intensityMap,mean_elongationMap,countMap
+
+@numba.jit
+def make_bev_map_norm(PointCloud, min_heightMap, max_heightMap, mean_intensityMap, countMap,boundary):
+    """
+        版本二：将数据归一化
+    """
+    for i in range(PointCloud.shape[0]):
+        h = np.int_(PointCloud[i, 0])
+        w = np.int_(PointCloud[i, 1])
+        # if h >= 0 and h < Height and w >= 0 and w < Width:
+        norm_z = (PointCloud[i,2] - boundary[2]) / (boundary[5] - boundary[2]) - 0.5
+        if min_heightMap[h, w] > norm_z:
+            min_heightMap[h, w] = norm_z 
+        if max_heightMap[h, w] < norm_z:
+            max_heightMap[h, w] = norm_z
+
+        mean_intensityMap[h, w] += PointCloud[i,3] - 0.5
+        countMap[h, w] += 1
+
+    return min_heightMap, max_heightMap, mean_intensityMap,countMap
+
+@numba.jit
+def make_bev_map(PointCloud, min_heightMap, max_heightMap, mean_intensityMap, countMap):
+    """
+        版本一：未归一化数据，效果较差
+    """
+    for i in range(PointCloud.shape[0]):
+        h = np.int_(PointCloud[i, 0])
+        w = np.int_(PointCloud[i, 1])
+        # if h >= 0 and h < Height and w >= 0 and w < Width:
+        if min_heightMap[h, w] > PointCloud[i,2]:
+            min_heightMap[h, w] = PointCloud[i,2] 
+        if max_heightMap[h, w] < PointCloud[i,2]:
+            max_heightMap[h, w] = PointCloud[i,2]
+
+        mean_intensityMap[h, w] += PointCloud[i,3]
+        countMap[h, w] += 1
+
+    return min_heightMap, max_heightMap, mean_intensityMap,countMap
+
+
 # 测试扩充维度对结果的影响
 @numba.jit
-def make_bev_map_norm_more(PointCloud, PointCloud_,min_heightMap, max_heightMap, mean_intensityMap, max_intensityMap ,countMap,boundary):
+def make_bev_map_norm_more(PointCloud, PointCloud_,min_heightMap, max_heightMap, mean_intensityMap,
+                                     max_intensityMap ,countMap,boundary):
+    """
+        版本四：扩充更多的特征信息
+    """
     for i in range(PointCloud.shape[0]):
         h = np.int_(PointCloud[i, 0])
         w = np.int_(PointCloud[i, 1])
@@ -38,59 +104,6 @@ def make_bev_map_norm_more(PointCloud, PointCloud_,min_heightMap, max_heightMap,
 
     return min_heightMap, max_heightMap, mean_intensityMap,max_intensityMap,countMap
 
-
-# 针对waymo数据集的5个维度信息进行bevmap
-@numba.jit
-def make_bev_map_norm_waymo(PointCloud, min_heightMap, max_heightMap, mean_intensityMap, mean_elongationMap,countMap,boundary):
-    for i in range(PointCloud.shape[0]):
-        h = np.int_(PointCloud[i, 0])
-        w = np.int_(PointCloud[i, 1])
-        # if h >= 0 and h < Height and w >= 0 and w < Width:
-        norm_z = (PointCloud[i,2] - boundary[2]) / (boundary[5] - boundary[2]) - 0.5
-        if min_heightMap[h, w] > norm_z:
-            min_heightMap[h, w] = norm_z 
-        if max_heightMap[h, w] < norm_z:
-            max_heightMap[h, w] = norm_z
-
-        mean_intensityMap[h, w] += PointCloud[i,3] - 0.5
-        mean_elongationMap[h, w] += PointCloud[i,4] - 0.5
-        countMap[h, w] += 1
-
-    return min_heightMap, max_heightMap, mean_intensityMap,mean_elongationMap,countMap
-
-@numba.jit
-def make_bev_map_norm(PointCloud, min_heightMap, max_heightMap, mean_intensityMap, countMap,boundary):
-    for i in range(PointCloud.shape[0]):
-        h = np.int_(PointCloud[i, 0])
-        w = np.int_(PointCloud[i, 1])
-        # if h >= 0 and h < Height and w >= 0 and w < Width:
-        norm_z = (PointCloud[i,2] - boundary[2]) / (boundary[5] - boundary[2]) - 0.5
-        if min_heightMap[h, w] > norm_z:
-            min_heightMap[h, w] = norm_z 
-        if max_heightMap[h, w] < norm_z:
-            max_heightMap[h, w] = norm_z
-
-        mean_intensityMap[h, w] += PointCloud[i,3] - 0.5
-        countMap[h, w] += 1
-
-    return min_heightMap, max_heightMap, mean_intensityMap,countMap
-
-@numba.jit
-def make_bev_map(PointCloud, min_heightMap, max_heightMap, mean_intensityMap, countMap):
-    for i in range(PointCloud.shape[0]):
-        h = np.int_(PointCloud[i, 0])
-        w = np.int_(PointCloud[i, 1])
-        # if h >= 0 and h < Height and w >= 0 and w < Width:
-        if min_heightMap[h, w] > PointCloud[i,2]:
-            min_heightMap[h, w] = PointCloud[i,2] 
-        if max_heightMap[h, w] < PointCloud[i,2]:
-            max_heightMap[h, w] = PointCloud[i,2]
-
-        mean_intensityMap[h, w] += PointCloud[i,3]
-        countMap[h, w] += 1
-
-    return min_heightMap, max_heightMap, mean_intensityMap,countMap
-
 ## MVlidarnet：这里生成的BEV为min_hei max_hei mean_intensity
 def makeBEVMap(PointCloud_, boundary, res_x, res_y, BEV_HEIGHT, BEV_WIDTH):
     Height = BEV_HEIGHT + 1
@@ -109,9 +122,10 @@ def makeBEVMap(PointCloud_, boundary, res_x, res_y, BEV_HEIGHT, BEV_WIDTH):
 
     min_heightMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32) + 99
     max_heightMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32) - 99
-    mean_intensityMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32)
-    max_intensityMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32)
-    mean_xyz = np.zeros((3,BEV_HEIGHT, BEV_WIDTH),dtype = np.float32) # 维度扩充
+    mean_intensityMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32)  
+    max_intensityMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32)  # 维度扩充一：最大强度
+    occupy = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32)  # 维度扩充二：体素是否占有
+    mean_xyz = np.zeros((3,BEV_HEIGHT, BEV_WIDTH),dtype = np.float32)     # 维度扩充三：平均xyz
     countMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.int8)
 
     # mean_elongationMap = np.zeros((BEV_HEIGHT, BEV_WIDTH),dtype = np.float32)   # 针对waymo
@@ -124,10 +138,12 @@ def makeBEVMap(PointCloud_, boundary, res_x, res_y, BEV_HEIGHT, BEV_WIDTH):
     min_heightMap,max_heightMap,mean_intensityMap,max_intensityMap,countMap = make_bev_map_norm_more(PointCloud,PointCloud_[val_flag_merge],min_heightMap,
                                 max_heightMap,mean_intensityMap, max_intensityMap, countMap ,boundary)
 
-    count_temp = countMap.copy()/130 - 0.5
+    # count_temp = countMap.copy()/130    # 扩充特征
+    occupy[countMap>0] = 1    # 扩充特征
+    
     countMap[countMap == 0] +=1
     mean_intensityMap = mean_intensityMap/countMap
-    mean_xyz = mean_xyz/countMap
+    mean_xyz = mean_xyz/countMap    # 扩充特征
 
     min_heightMap[min_heightMap > 98] = 0
     max_heightMap[max_heightMap < -98] = 0

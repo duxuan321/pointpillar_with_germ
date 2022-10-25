@@ -95,6 +95,8 @@ class WeightedSmoothL1Loss(nn.Module):
         if code_weights is not None:
             self.code_weights = np.array(code_weights, dtype=np.float32)
             self.code_weights = torch.from_numpy(self.code_weights).cuda()
+        else:
+            self.code_weights = None
 
     @staticmethod
     def smooth_l1_loss(diff, beta):
@@ -204,6 +206,52 @@ class WeightedCrossEntropyLoss(nn.Module):
         target = target.argmax(dim=-1)
         loss = F.cross_entropy(input, target, reduction='none') * weights
         return loss
+
+
+# 2022/10/17 new
+class WeightedSoftmaxClassificationLoss(nn.Module):
+    """Softmax loss function."""
+
+    def __init__(self, logit_scale=1.0, loss_weight=1.0, name=""):
+        """Constructor.
+
+        Args:
+        logit_scale: When this value is high, the prediction is "diffused" and
+                    when this value is low, the prediction is made peakier.
+                    (default 1.0)
+
+        """
+        super(WeightedSoftmaxClassificationLoss, self).__init__()
+        self.name = name
+        self._loss_weight = loss_weight   # 0.2
+        self._logit_scale = logit_scale   # default: 1.0
+
+    def _softmax_cross_entropy_with_logits(self, logits, labels):
+        param = list(range(len(logits.shape)))  # [0, 1, 2]
+        transpose_param = [0] + [param[-1]] + param[1:-1]  # [0, 2, 1]
+        logits = logits.permute(*transpose_param)  # [N, ..., C] -> [N, C, ...]: [8, 70400, 2] -> [8, 2, 70400]
+        loss_ftor = nn.CrossEntropyLoss(reduction="none")
+        loss = loss_ftor(logits, labels.max(dim=-1)[
+            1])  # logits: [8, 2, 70400]; labels: [8, 70400, 2]; max: [8, 70400]  -> loss: [8, 70400]
+        return loss
+
+    def forward(self, prediction_tensor, target_tensor, weights):
+        """Compute loss function.
+
+        Args:
+            prediction_tensor: A float tensor of shape [batch_size, num_anchors, num_classes] representing the predicted logits for each class
+            target_tensor: A float tensor of shape [batch_size, num_anchors, num_classes] representing one-hot encoded classification targets
+            weights: a float tensor of shape [batch_size, num_anchors]
+
+        Returns:
+            loss: a float tensor of shape [batch_size, num_anchors] representing the value of the loss function.
+        """
+        num_classes = prediction_tensor.shape[-1]     # 2
+        prediction_tensor = torch.div(prediction_tensor, self._logit_scale)
+        per_row_cross_ent = self._softmax_cross_entropy_with_logits(labels=target_tensor.view(-1, num_classes), logits=prediction_tensor.view(-1, num_classes),)  # mix all voxels in a batch
+
+        return per_row_cross_ent.view(weights.shape) * weights
+
 
 
 def get_corner_loss_lidar(pred_bbox3d: torch.Tensor, gt_bbox3d: torch.Tensor):
@@ -448,52 +496,132 @@ def bbox_overlaps(bboxes1, bboxes2, mode="iou", is_aligned=False):
 
     return ious
 
+
+
+#####################################################################################IOU LOSS ####################################
+
+def center_to_corner2d(center, dim):
+    corners_norm = torch.tensor([[-0.5, -0.5], [-0.5, 0.5], [0.5, 0.5], [0.5, -0.5]],
+                                dtype=torch.float32, device=dim.device)
+    corners = dim.view([-1, 1, 2]) * corners_norm.view([1, 4, 2])
+    corners = corners + center.view(-1, 1, 2)
+    return corners
+
+
+def bbox3d_overlaps_iou(pred_boxes, gt_boxes):
+    assert pred_boxes.shape[0] == gt_boxes.shape[0]
+
+    qcorners = center_to_corner2d(pred_boxes[:, :2], pred_boxes[:, 3:5])
+    gcorners = center_to_corner2d(gt_boxes[:, :2], gt_boxes[:, 3:5])
+
+    inter_max_xy = torch.minimum(qcorners[:, 2], gcorners[:, 2])
+    inter_min_xy = torch.maximum(qcorners[:, 0], gcorners[:, 0])
+
+    # calculate area
+    volume_pred_boxes = pred_boxes[:, 3] * pred_boxes[:, 4] * pred_boxes[:, 5]
+    volume_gt_boxes = gt_boxes[:, 3] * gt_boxes[:, 4] * gt_boxes[:, 5]
+
+    inter_h = torch.minimum(gt_boxes[:, 2] + 0.5 * gt_boxes[:, 5], pred_boxes[:, 2] + 0.5 * pred_boxes[:, 5]) - \
+              torch.maximum(gt_boxes[:, 2] - 0.5 * gt_boxes[:, 5], pred_boxes[:, 2] - 0.5 * pred_boxes[:, 5])
+    inter_h = torch.clamp(inter_h, min=0)
+
+    inter = torch.clamp((inter_max_xy - inter_min_xy), min=0)
+    volume_inter = inter[:, 0] * inter[:, 1] * inter_h
+    volume_union = volume_gt_boxes + volume_pred_boxes - volume_inter
+
+    ious = volume_inter / volume_union
+    ious = torch.clamp(ious, min=0, max=1.0)
+    return ious
+
+
+def bbox3d_overlaps_giou(pred_boxes, gt_boxes):
+    assert pred_boxes.shape[0] == gt_boxes.shape[0]
+
+    qcorners = center_to_corner2d(pred_boxes[:, :2], pred_boxes[:, 3:5])
+    gcorners = center_to_corner2d(gt_boxes[:, :2], gt_boxes[:, 3:5])
+
+    inter_max_xy = torch.minimum(qcorners[:, 2], gcorners[:, 2])
+    inter_min_xy = torch.maximum(qcorners[:, 0], gcorners[:, 0])
+    out_max_xy = torch.maximum(qcorners[:, 2], gcorners[:, 2])
+    out_min_xy = torch.minimum(qcorners[:, 0], gcorners[:, 0])
+
+    # calculate area
+    volume_pred_boxes = pred_boxes[:, 3] * pred_boxes[:, 4] * pred_boxes[:, 5]
+    volume_gt_boxes = gt_boxes[:, 3] * gt_boxes[:, 4] * gt_boxes[:, 5]
+
+    inter_h = torch.minimum(gt_boxes[:, 2] + 0.5 * gt_boxes[:, 5], pred_boxes[:, 2] + 0.5 * pred_boxes[:, 5]) - \
+              torch.maximum(gt_boxes[:, 2] - 0.5 * gt_boxes[:, 5], pred_boxes[:, 2] - 0.5 * pred_boxes[:, 5])
+    inter_h = torch.clamp(inter_h, min=0)
+
+    inter = torch.clamp((inter_max_xy - inter_min_xy), min=0)
+    volume_inter = inter[:, 0] * inter[:, 1] * inter_h
+    volume_union = volume_gt_boxes + volume_pred_boxes - volume_inter
+
+    outer_h = torch.maximum(gt_boxes[:, 2] + 0.5 * gt_boxes[:, 5], pred_boxes[:, 2] + 0.5 * pred_boxes[:, 5]) - \
+              torch.minimum(gt_boxes[:, 2] - 0.5 * gt_boxes[:, 5], pred_boxes[:, 2] - 0.5 * pred_boxes[:, 5])
+    outer_h = torch.clamp(outer_h, min=0)
+    outer = torch.clamp((out_max_xy - out_min_xy), min=0)
+    closure = outer[:, 0] * outer[:, 1] * outer_h
+
+    gious = volume_inter / volume_union - (closure - volume_union) / closure
+    gious = torch.clamp(gious, min=-1.0, max=1.0)
+    return gious
+
+
 # bev 2Diou
 def _iou_loss_bev(pred, target, mask,eps=1e-6):
     """
         pred:batch * anchor_num * ['center*2', 'center_z*1', 'dim*3_lwh', 'rot*2']
     """
     # 加入mask过滤
-    num = mask.float().sum()
-    mask = mask.unsqueeze(2).expand_as(target).float()
-    isnotnan = (~ torch.isnan(target)).float()
-    mask *= isnotnan
-    pred = pred * mask
-    target = target * mask
+    # num = mask.float().sum()
+    # mask = mask.unsqueeze(2).expand_as(target).float()
+    # isnotnan = (~ torch.isnan(target)).float()
+    # mask *= isnotnan
+    # pred = pred * mask
+    # target = target * mask
 
-    voxel_size_commen = 0.16
-    pre_x_min,pre_x_max = (
-        pred[:,:,0]*voxel_size_commen -0.5*pred[:,:,4].exp(),
-        pred[:,:,0]*voxel_size_commen +0.5*pred[:,:,4].exp()
-    )
-    # pre_y_min,pre_y_max = (
-    #     pred[:,:,1]*voxel_size_commen -0.5*pred[:,:,3].exp(),
-    #     pred[:,:,1]*voxel_size_commen +0.5*pred[:,:,3].exp()
+    # voxel_size_commen = 0.16
+    # pre_x_min,pre_x_max = (
+    #     pred[:,:,0]*voxel_size_commen -0.5*pred[:,:,4].exp(),
+    #     pred[:,:,0]*voxel_size_commen +0.5*pred[:,:,4].exp()
     # )
+    # # pre_y_min,pre_y_max = (
+    # #     pred[:,:,1]*voxel_size_commen -0.5*pred[:,:,3].exp(),
+    # #     pred[:,:,1]*voxel_size_commen +0.5*pred[:,:,3].exp()
+    # # )
 
-    with torch.no_grad():
-        target_x_min,target_x_max = (
-            target[:,:,0]*voxel_size_commen -0.5*target[:,:,4].exp(),
-            target[:,:,0]*voxel_size_commen +0.5*target[:,:,4].exp()
-        )
-        # target_y_min,target_y_max = (
-        #     target[:,:,1]*voxel_size_commen -0.5*target[:,:,3].exp(),
-        #     target[:,:,1]*voxel_size_commen +0.5*target[:,:,3].exp()
-        # )
+    # with torch.no_grad():
+    #     target_x_min,target_x_max = (
+    #         target[:,:,0]*voxel_size_commen -0.5*target[:,:,4].exp(),
+    #         target[:,:,0]*voxel_size_commen +0.5*target[:,:,4].exp()
+    #     )
+    #     # target_y_min,target_y_max = (
+    #     #     target[:,:,1]*voxel_size_commen -0.5*target[:,:,3].exp(),
+    #     #     target[:,:,1]*voxel_size_commen +0.5*target[:,:,3].exp()
+    #     # )
 
-    inter_x = torch.min(pre_x_max,target_x_max) - torch.max(pre_x_min,target_x_min)
-    # inter_y = torch.min(pre_y_max,target_y_max) - torch.max(pre_y_min,target_y_min)
-    # print(inter_x,inter_y)
+    # inter_x = torch.min(pre_x_max,target_x_max) - torch.max(pre_x_min,target_x_min)
+    # # inter_y = torch.min(pre_y_max,target_y_max) - torch.max(pre_y_min,target_y_min)
+    # # print(inter_x,inter_y)
 
-    # iou = inter_x*inter_y/(pred[:,:,4].exp()*pred[:,:,3].exp() + target[:,:,3].exp()*target[:,:,4].exp() - inter_x*inter_y)
-    iou = inter_x/(pred[:,:,4].exp() + target[:,:,4].exp() - inter_x)
+    # # iou = inter_x*inter_y/(pred[:,:,4].exp()*pred[:,:,3].exp() + target[:,:,3].exp()*target[:,:,4].exp() - inter_x*inter_y)
+    # # print("bev:",inter_x)
+    # iou = inter_x/(pred[:,:,4].exp() + target[:,:,4].exp() - inter_x)
     
-    iou[iou < 0] = 0.0
-    iou[iou > 1] = 1.0
-    iou_loss = (1 - iou).sum() / iou.shape[0]
+    # iou[iou < 0] = 0.0
+    # iou[iou > 1] = 1.0
+    # # iou_loss = (1 - iou).sum() / iou.shape[0]
+    # iou_loss = (- iou.log()).sum() / iou.shape[0]
 
-    print("bev loss:",iou_loss)
-    print("bev---",inter_x,pred[:,:,4].exp(),target[:,:,4].exp(),iou)
+    # # print("bev loss:",iou_loss)
+    # # print("bev---",inter_x,pred[:,:,4].exp(),target[:,:,4].exp(),iou)
+
+    # iou_loss = bbox3d_overlaps_iou(pred[mask.bool()],target[mask.bool()])
+    # print("giou")
+    iou_loss = bbox3d_overlaps_giou(pred[mask.bool()],target[mask.bool()])
+    iou_loss = (1. - iou_loss).sum() / (mask.sum() + 1e-4)
+    
     return iou_loss
 
 # hei 1Diou
@@ -534,9 +662,10 @@ def _iou_loss_hei(pred, target, mask,eps=1e-6):
     iou[iou < 0] = 0.0
     iou[iou > 1] = 1.0
     iou_loss = (1 - iou).sum() / iou.shape[0]
-
+    
     # print(iou_loss)
     return iou_loss
+
 
 class IOULoss(nn.Module):
     """
@@ -559,6 +688,15 @@ class IOULoss(nn.Module):
             pred = output
         else:
             pred = _transpose_and_gather_feat(output, ind)
-        loss = _iou_loss_hei(pred, target, mask)
-        # loss = _iou_loss_bev(pred, target, mask)
+
+        # 先解算成标准的格式
+        pred[:,:,:2] *= 0.16*2
+        pred[:,:,3:6] = pred[:,:,3:6].exp()
+        # pred[:,:,]
+
+        target[:,:,:2] *= 0.16*2
+        target[:,:,3:6] = target[:,:,3:6].exp()
+
+        # loss = _iou_loss_hei(pred, target, mask)
+        loss = _iou_loss_bev(pred, target, mask)
         return loss

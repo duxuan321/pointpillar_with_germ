@@ -13,11 +13,13 @@ DATA_CONFIG:
             'test': False
           }
 
-        - NAME: transform_points_to_bev
-          # VOXEL_SIZE: [0.1, 0.1, 4]
+        - NAME: transform_points_to_voxels
           VOXEL_SIZE: [0.16, 0.16, 4]
-        #   VOXEL_SIZE: [0.08, 0.08, 4]
-
+          MAX_POINTS_PER_VOXEL: 32
+          MAX_NUMBER_OF_VOXELS: {
+            'train': 16000,
+            'test': 40000
+          }
     DATA_AUGMENTOR:
         DISABLE_AUG_LIST: ['placeholder']
         AUG_CONFIG_LIST:
@@ -49,10 +51,14 @@ MODEL:
     NAME: PointPillar
 
     VFE:
-        NAME: PlaceHolderVFE
+        NAME: PillarVFE
+        WITH_DISTANCE: False
+        USE_ABSLOTE_XYZ: True
+        USE_NORM: True
+        NUM_FILTERS: [64]
 
     MAP_TO_BEV:
-        NAME: BEV_scatter
+        NAME: PointPillarScatter
         NUM_BEV_FEATURES: 64
 
     BACKBONE_2D:
@@ -64,7 +70,7 @@ MODEL:
         NUM_UPSAMPLE_FILTERS: [128, 128, 128]
 
     DENSE_HEAD:
-        NAME: AnchorHeadSingle
+        NAME: IouAwareHeadSingle
         CLASS_AGNOSTIC: False
 
         USE_DIRECTION_CLASSIFIER: True
@@ -118,12 +124,13 @@ MODEL:
                 'cls_weight': 1.0,
                 'loc_weight': 2.0,
                 'dir_weight': 0.2,
-                'code_weights': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+                'code_weights': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                'iou_weight': 1.0
             }
 
     POST_PROCESSING:
         RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
-        SCORE_THRESH: 0.1
+        SCORE_THRESH: 0.01
         OUTPUT_RAW_SCORE: False
 
         EVAL_METRIC: kitti

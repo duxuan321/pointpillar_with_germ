@@ -2,8 +2,7 @@ CLASS_NAMES: ['Car', 'Pedestrian', 'Cyclist']
 
 DATA_CONFIG: 
     _BASE_CONFIG_: cfgs/dataset_configs/kitti_dataset.yaml
-    # POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
-    POINT_CLOUD_RANGE: [0, -39.68, -3, 69.12, 39.68, 1]  
+    POINT_CLOUD_RANGE: [0, -39.68, -3, 69.12, 39.68, 1]
     DATA_PROCESSOR:
         - NAME: mask_points_and_boxes_outside_range
           REMOVE_OUTSIDE_BOXES: True
@@ -17,7 +16,7 @@ DATA_CONFIG:
         - NAME: transform_points_to_bev
           # VOXEL_SIZE: [0.1, 0.1, 4]
           VOXEL_SIZE: [0.16, 0.16, 4]
-          # VOXEL_SIZE: [0.08, 0.08, 4]
+        #   VOXEL_SIZE: [0.08, 0.08, 4]
 
     DATA_AUGMENTOR:
         DISABLE_AUG_LIST: ['placeholder']
@@ -37,6 +36,13 @@ DATA_CONFIG:
               REMOVE_EXTRA_WIDTH: [0.0, 0.0, 0.0]
               LIMIT_WHOLE_SCENE: False
 
+            # new
+            # - NAME: random_local_rotation
+            #   LOCAL_ROT_ANGLE: [-0.15707963267, 0.15707963267]
+            # # new
+            # - NAME: random_local_scaling
+            #   LOCAL_SCALE_RANGE: [0.95, 1.05]
+
             - NAME: random_world_flip
               ALONG_AXIS_LIST: ['x']
 
@@ -46,20 +52,60 @@ DATA_CONFIG:
             - NAME: random_world_scaling
               WORLD_SCALE_RANGE: [0.95, 1.05]
 
+            # new
+            # - NAME: random_world_translation
+            #   WORLD_TRANSLATION_RANGE: [ -0.2, 0.2 ]
+            #   ALONG_AXIS_LIST: ['x', 'y', 'z']
+            #   NOISE_TRANSLATE_STD: 0.1  # TODO
+            # # new 有问题
+            # - NAME: random_local_translation
+            #   LOCAL_TRANSLATION_RANGE: [0.95, 1.05]
+            #   ALONG_AXIS_LIST: ['x', 'y', 'z']
+
+            # # new
+            # - NAME: random_world_frustum_dropout
+            #   INTENSITY_RANGE: [ 0, 0.2 ]
+            #   DIRECTION: ['top']
+            # # new
+            # - NAME: random_local_frustum_dropout
+            #   INTENSITY_RANGE: [ 0, 0.2 ]
+            #   DIRECTION: ['top']
+
+            # new
+            # - NAME: random_local_pyramid_aug
+            #   DROP_PROB: 0.25
+            #   SPARSIFY_PROB: 0.05
+            #   SPARSIFY_MAX_NUM: 50
+            #   SWAP_PROB: 0.1
+            #   SWAP_MAX_NUM: 50
+
+            # # 加入新的数据增强
+            # - NAME: part_aware_aug
+            #   PA_AUG_PARAM: "dropout_p02_swap_p02_mix_p02_sparse40_p01_noise10_p01"
+
+        
 MODEL:
     NAME: CenterPoint
 
     VFE:
         NAME: PlaceHolderVFE
-    
+
     MAP_TO_BEV:
-        NAME: BEV_mvlidarnet
-        NUM_BEV_FEATURES: 3
+        NAME: BEV_scatter
+        NUM_BEV_FEATURES: 64
 
     BACKBONE_2D:
-        NAME: MVLidarNetBackbone
-        MULTI_INPUT_CHANNELS: [4, 7]
-        # MULTI_INPUT_CHANNELS: [5, 7]
+        NAME: BaseBEVBackbone
+        LAYER_NUMS: [3, 5, 5]
+        LAYER_STRIDES: [2, 2, 2]
+        NUM_FILTERS: [64, 128, 256]
+        UPSAMPLE_STRIDES: [1, 2, 4]
+        NUM_UPSAMPLE_FILTERS: [128, 128, 128]
+        # LAYER_NUMS: [7, 8]           
+        # LAYER_STRIDES: [1, 2]
+        # NUM_FILTERS: [32,64]
+        # UPSAMPLE_STRIDES: [1, 2]
+        # NUM_UPSAMPLE_FILTERS: [64,64]
 
     DENSE_HEAD:
         NAME: CenterHead
@@ -82,10 +128,11 @@ MODEL:
             }
 
         TARGET_ASSIGNER_CONFIG:
-            FEATURE_MAP_STRIDE: 4
+            FEATURE_MAP_STRIDE: 2
             NUM_MAX_OBJS: 500
             GAUSSIAN_OVERLAP: 0.1
             MIN_RADIUS: 2
+            # LABEL_ASSIGN_FLAG: v4       # v4必须要和loss一起更换
             # LABEL_ASSIGN_FLAG: v2
 
         LOSS_CONFIG:
@@ -99,14 +146,13 @@ MODEL:
             POSTPROCESS_TYPE: nms    
             # POSTPROCESS_TYPE: maxpooling    # 第二种后处理方式：非nms
             SCORE_THRESH: 0.1
-            POST_CENTER_LIMIT_RANGE: [0, -39.68, -3, 69.12, 39.68, 1]  
+            POST_CENTER_LIMIT_RANGE: [0, -39.68, -3, 69.12, 39.68, 1]
             MAX_OBJ_PER_SAMPLE: 500
             NMS_CONFIG:
                 NMS_TYPE: nms_gpu
                 NMS_THRESH: 0.7
                 NMS_PRE_MAXSIZE: 4096
                 NMS_POST_MAXSIZE: 500
-
 
     POST_PROCESSING:
         RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
@@ -121,13 +167,13 @@ MODEL:
             NMS_THRESH: 0.01
             NMS_PRE_MAXSIZE: 4096
             NMS_POST_MAXSIZE: 500
-    
-    EXPORT_ONNX: False  # 这个参数有两个都需要修改（2/2）
-    # WITH_IOU_LOSS: True  # 使用iou loss
-    # IOU_WEIGHT: 2   # iou_loss权重
+
+    WITH_IOU_LOSS: True  # 使用iou loss
+    IOU_WEIGHT: 1   # iou_loss权重
+
 
 OPTIMIZATION:
-    BATCH_SIZE_PER_GPU: 16
+    BATCH_SIZE_PER_GPU: 4
     NUM_EPOCHS: 80
 
     OPTIMIZER: adam_onecycle

@@ -842,12 +842,13 @@ class CenterHead(nn.Module):
             loc_loss = (reg_loss * reg_loss.new_tensor(self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['code_weights'])).sum()
             loc_loss = loc_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['loc_weight']
 
+            # iou loss
             iou_loss = self.iou_loss_func(
                 pred_boxes, target_dicts['masks'][idx], target_dicts['inds'][idx], target_boxes
             )
-            iou_loss = iou_loss * 1.0
+            iou_loss = iou_loss * iou_weight
 
-            loss += hm_loss + loc_loss + iou_loss*iou_weight
+            loss += hm_loss + loc_loss + iou_loss
             tb_dict['hm_loss_head_%d' % idx] = hm_loss.item()
             tb_dict['loc_loss_head_%d' % idx] = loc_loss.item()
             tb_dict['iou_loss_head_%d' % idx] = iou_loss.item()
