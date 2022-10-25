@@ -29,6 +29,7 @@ CUDA_VISIBLE_DEVICES=1 python test.py --cfg_file ./cfgs/kitti_models/mvlidarnet.
 以下模块在配置文件中使用
 
 #### 4.1 手工特征提取代替pillar scatter
+`
 DATA_PROCESSOR:
     - NAME: mask_points_and_boxes_outside_range
       REMOVE_OUTSIDE_BOXES: True
@@ -55,6 +56,8 @@ MODEL:
 
     BACKBONE_2D:
         NAME: BaseBEVBackbone
+`
+
         
 #### 4.2 center head 的label assignment改进版本
 MODEL:
