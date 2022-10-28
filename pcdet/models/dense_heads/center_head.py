@@ -7,6 +7,7 @@ from torch.nn.init import kaiming_normal_
 from ..model_utils import model_nms_utils
 from ..model_utils import centernet_utils
 from ...utils import loss_utils
+from ...ops.iou3d_nms import iou3d_nms_utils
 
 import torch.nn.functional as F
 
@@ -58,12 +59,21 @@ class CenterHead(nn.Module):
         self.point_cloud_range = point_cloud_range
         self.voxel_size = voxel_size
         self.feature_map_stride = self.model_cfg.TARGET_ASSIGNER_CONFIG.get('FEATURE_MAP_STRIDE', None)
-        self.label_assign_flag = self.model_cfg.TARGET_ASSIGNER_CONFIG.get('LABEL_ASSIGN_FLAG', 'commen')
-        self.postprocess = self.model_cfg.POST_PROCESSING.get('POSTPROCESS_TYPE', 'nms')
 
         self.class_names = class_names
         self.class_names_each_head = []
         self.class_id_mapping_each_head = []
+
+        ## 扩充项  ##############################################################################################
+        self.label_assign_flag = self.model_cfg.TARGET_ASSIGNER_CONFIG.get('LABEL_ASSIGN_FLAG', 'commen')
+        self.postprocess = self.model_cfg.POST_PROCESSING.get('POSTPROCESS_TYPE', 'nms')
+
+        self.iou_loss_flag = self.model_cfg.get('WITH_IOU_LOSS', False)
+        self.iou_loss_type = self.model_cfg.get('IOU_LOSS_TYPE', 'IOU_HEI')
+        self.iou_loss_weight = self.model_cfg.get('IOU_WEIGHT', 1)
+        self.iou_aware_flag = self.model_cfg.get('WITH_IOU_AWARE_LOSS', False)
+        self.iou_aware_weight = self.model_cfg.get('IOU_AWARE_WEIGHT', 1)
+        ############################################################################################################
 
         for cur_class_names in self.model_cfg.CLASS_NAMES_EACH_HEAD:
             self.class_names_each_head.append([x for x in cur_class_names if x in class_names])
@@ -104,7 +114,14 @@ class CenterHead(nn.Module):
     def build_losses(self):
         self.add_module('hm_loss_func', loss_utils.FocalLossCenterNet())
         self.add_module('reg_loss_func', loss_utils.RegLossCenterNet())
-        self.add_module('iou_loss_func', loss_utils.IOULoss())
+
+        # iou loss
+        if self.iou_loss_flag:
+            self.add_module('iou_loss_func', loss_utils.IOULoss(self.feature_map_stride,self.voxel_size[0]))
+
+        # IOU_AWARE
+        if self.iou_aware_flag:
+            self.add_module('iou_aware_loss_func', loss_utils.RegLossCenterNet())
 
     def assign_target_of_single_head(
             self, num_classes, gt_boxes, feature_map_size, feature_map_stride, num_max_objs=500,
@@ -791,13 +808,20 @@ class CenterHead(nn.Module):
             target_boxes = target_dicts['target_boxes'][idx]
             pred_boxes = torch.cat([pred_dict[head_name] for head_name in self.separate_head_cfg.HEAD_ORDER], dim=1)
 
+            # IOU_AWARE ##################################################################
+            if self.iou_aware_flag:
+                pred_iou = pred_boxes[:,8:,:,:]
+                pred_boxes = pred_boxes[:,:8,:,:]
+            ##############################################################################
+
             reg_loss = self.reg_loss_func(
                 pred_boxes, target_dicts['masks'][idx], target_dicts['inds'][idx], target_boxes
             )
             loc_loss = (reg_loss * reg_loss.new_tensor(self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['code_weights'])).sum()
             loc_loss = loc_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['loc_weight']
+            loss += hm_loss + loc_loss
 
-            # 第二种计算损失函数的方法，对dx dy采用多label,其他只计算中心点
+            # 第二种计算损失函数的方法，对dx dy采用多label,其他只计算中心点 ###############################################
             # print("1111",pred_boxes.shape,target_boxes.shape,target_dicts['masks'][idx].shape,target_boxes.shape)
             # reg_loss1 = self.reg_loss_func(
             #     pred_boxes[:,:2], target_dicts['masks'][idx][:,500:], target_dicts['inds'][idx][:,500:], target_boxes[:,500:,:2]
@@ -808,55 +832,85 @@ class CenterHead(nn.Module):
             # loc_loss = (reg_loss1 * reg_loss1.new_tensor(self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['code_weights'][:2])).sum()
             # loc_loss += (reg_loss2 * reg_loss2.new_tensor(self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['code_weights'][2:])).sum()
             # loc_loss = loc_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['loc_weight']
+            ##############################################################################################################
 
-            loss += hm_loss + loc_loss
+            ## IOU_AWARE:加入iou aware loss  ###########################################################################################
+            if self.iou_aware_flag:
+                # 1.解算出检测框，得到gt iou
+                batch_size = target_boxes.shape[0]
+                batch_hm = pred_dict['hm'].sigmoid()
+                batch_center = pred_dict['center']
+                batch_center_z = pred_dict['center_z']
+                batch_dim = pred_dict['dim'].exp()
+                batch_rot_cos = pred_dict['rot'][:, 0].unsqueeze(dim=1)
+                batch_rot_sin = pred_dict['rot'][:, 1].unsqueeze(dim=1)
+                batch_vel = pred_dict['vel'] if 'vel' in self.separate_head_cfg.HEAD_ORDER else None
+
+                center_ = loss_utils._transpose_and_gather_feat(batch_center,target_dicts['inds'][idx])*self.feature_map_stride*self.voxel_size[0]
+                center_z_ = loss_utils._transpose_and_gather_feat(batch_center_z,target_dicts['inds'][idx])
+                dim_ = loss_utils._transpose_and_gather_feat(batch_dim,target_dicts['inds'][idx])
+                cos_ = loss_utils._transpose_and_gather_feat(batch_rot_cos,target_dicts['inds'][idx])
+                sin_ = loss_utils._transpose_and_gather_feat(batch_rot_sin,target_dicts['inds'][idx])
+                angle_ = torch.atan2(sin_, cos_)
+                final_pred_dicts = torch.cat([center_,center_z_,dim_,angle_],dim = -1)
+                final_pred_dicts = final_pred_dicts.view(-1,7)
+                final_pred_dicts = final_pred_dicts.detach()  # 这个很重要！！！！！！
+
+                # 解算gt box
+                final_target = target_boxes.clone()
+                final_target[:,:,:2] *= self.feature_map_stride*self.voxel_size[0]
+                final_target[:,:,3:6] = final_target[:,:,3:6].exp()
+                final_target[:,:,6:7] = torch.atan2(final_target[:,:,7:8], final_target[:,:,6:7])
+                final_target = final_target[:,:,:7].view(-1,7)
+                # print(final_pred_dicts.requires_grad,final_target.requires_grad)
+
+                iou_target = iou3d_nms_utils.boxes_iou3d_gpu(final_pred_dicts, final_target)
+                iou_target = iou_target[range(iou_target.shape[0]),range(iou_target.shape[0])].view(batch_size,-1,1)
+                # print("??",iou_target.shape,iou_target)
+                iou_target = 2 * iou_target - 1
+                iou_target = iou_target.detach()
+                
+                # 2.计算iou loss
+                iou_aware_loss = self.iou_aware_loss_func(
+                    pred_iou, target_dicts['masks'][idx], target_dicts['inds'][idx], iou_target
+                )
+                iou_aware_loss = iou_aware_loss * 1.0
+
+                # print(loss.shape,iou_aware_loss)
+                loss += iou_aware_loss[0]
+            ############################################## IOU_AWARE ####################################################################
+
+            ## iou loss ###############################################################################################
+            if self.iou_loss_flag:
+                iou_loss = self.iou_loss_func(
+                    pred_boxes, target_dicts['masks'][idx], target_dicts['inds'][idx], target_boxes
+                )
+                iou_loss = iou_loss * self.iou_loss_weight
+
+                loss += iou_loss
+                tb_dict['iou_loss_head_%d' % idx] = iou_loss.item()
+            ##############################################################################################################
             tb_dict['hm_loss_head_%d' % idx] = hm_loss.item()
             tb_dict['loc_loss_head_%d' % idx] = loc_loss.item()
-
-        tb_dict['rpn_loss'] = loss.item()
-        return loss, tb_dict
-
-
-    """
-    加上iou loss的损失函数
-    PS：需要在build_losses函数中加入iou loss的函数
-    """
-    def get_loss_with_iou(self,iou_weight):
-        pred_dicts = self.forward_ret_dict['pred_dicts']
-        target_dicts = self.forward_ret_dict['target_dicts']
-
-        tb_dict = {}
-        loss = 0
-
-        for idx, pred_dict in enumerate(pred_dicts):
-            pred_dict['hm'] = self.sigmoid(pred_dict['hm'])
-            hm_loss = self.hm_loss_func(pred_dict['hm'], target_dicts['heatmaps'][idx])
-            hm_loss *= self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['cls_weight']
-
-            target_boxes = target_dicts['target_boxes'][idx]
-            pred_boxes = torch.cat([pred_dict[head_name] for head_name in self.separate_head_cfg.HEAD_ORDER], dim=1)
-
-            reg_loss = self.reg_loss_func(
-                pred_boxes, target_dicts['masks'][idx], target_dicts['inds'][idx], target_boxes
-            )
-            loc_loss = (reg_loss * reg_loss.new_tensor(self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['code_weights'])).sum()
-            loc_loss = loc_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS['loc_weight']
-
-            # iou loss
-            iou_loss = self.iou_loss_func(
-                pred_boxes, target_dicts['masks'][idx], target_dicts['inds'][idx], target_boxes
-            )
-            iou_loss = iou_loss * iou_weight
-
-            loss += hm_loss + loc_loss + iou_loss
-            tb_dict['hm_loss_head_%d' % idx] = hm_loss.item()
-            tb_dict['loc_loss_head_%d' % idx] = loc_loss.item()
-            tb_dict['iou_loss_head_%d' % idx] = iou_loss.item()
 
         tb_dict['rpn_loss'] = loss.item()
         return loss, tb_dict
 
     def generate_predicted_boxes(self, batch_size, pred_dicts):
+        # IOU_AWARE
+        def update_score_with_iou(batch_hm,iou_pre,weight):
+            """
+                用两段方程来拟合pow函数
+            """
+            x0 = 0.5
+            y0 = pow(0.5,weight)
+            y1 = pow(0.5,1-weight)
+
+            update_heatmap = torch.where(batch_hm>0.5, (2.0-2.0*y0)*batch_hm+2*y0-1.0, 2.0*y0*batch_hm)
+            update_iou_pre = torch.where(iou_pre>0.5, (2.0-2.0*y1)*iou_pre+2*y1-1.0, 2.0*y1*iou_pre)
+            # print(batch_hm.max(),update_heatmap.max())
+            return update_heatmap * update_iou_pre
+
         post_process_cfg = self.model_cfg.POST_PROCESSING
         post_center_limit_range = torch.tensor(post_process_cfg.POST_CENTER_LIMIT_RANGE).cuda().float()
 
@@ -867,6 +921,29 @@ class CenterHead(nn.Module):
         } for k in range(batch_size)]
         for idx, pred_dict in enumerate(pred_dicts):
             batch_hm = pred_dict['hm'].sigmoid()
+
+            ## IOU_AWARE:用iou更新预测分数 ###############################################################################
+            iou_pre = (pred_dict['iou']+1)*0.5
+            iou_pre = torch.clamp(iou_pre, min=0, max=1.)
+            
+            # 基本形式
+            # iou_aware_weight = 0.7
+            # batch_hm = torch.pow(batch_hm ,iou_aware_weight) * torch.pow(iou_pre ,1-iou_aware_weight)
+
+            # 第一种解码形式
+            # iou_aware_weight = [0.15,0.7,0.15]
+            iou_aware_weight = [0.15,0.75,0.15]
+            for i in range(3):
+                batch_hm[:,i:i+1,:,:] = torch.pow(batch_hm[:,i:i+1,:,:] ,iou_aware_weight[i]) * torch.pow(iou_pre ,1-iou_aware_weight[i])
+
+            # 第二种解码形式
+            # batch_hm = batch_hm * iou_aware_weight + iou_pre * (1-iou_aware_weight)
+            # 第三种解码形式
+            # batch_hm = update_score_with_iou(batch_hm,iou_pre,iou_aware_weight)
+
+            # print("???",iou_pre.max())
+            #################################################################################################################
+
             batch_center = pred_dict['center']
             batch_center_z = pred_dict['center_z']
             batch_dim = pred_dict['dim'].exp()

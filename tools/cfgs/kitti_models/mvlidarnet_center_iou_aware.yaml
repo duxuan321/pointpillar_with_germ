@@ -2,7 +2,8 @@ CLASS_NAMES: ['Car', 'Pedestrian', 'Cyclist']
 
 DATA_CONFIG: 
     _BASE_CONFIG_: cfgs/dataset_configs/kitti_dataset.yaml
-    POINT_CLOUD_RANGE: [0, -39.68, -3, 69.12, 39.68, 1]
+    # POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
+    POINT_CLOUD_RANGE: [0, -39.68, -3, 69.12, 39.68, 1]  
     DATA_PROCESSOR:
         - NAME: mask_points_and_boxes_outside_range
           REMOVE_OUTSIDE_BOXES: True
@@ -16,7 +17,7 @@ DATA_CONFIG:
         - NAME: transform_points_to_bev
           # VOXEL_SIZE: [0.1, 0.1, 4]
           VOXEL_SIZE: [0.16, 0.16, 4]
-        #   VOXEL_SIZE: [0.08, 0.08, 4]
+          # VOXEL_SIZE: [0.08, 0.08, 4]
 
     DATA_AUGMENTOR:
         DISABLE_AUG_LIST: ['placeholder']
@@ -50,21 +51,18 @@ MODEL:
 
     VFE:
         NAME: PlaceHolderVFE
-
+    
     MAP_TO_BEV:
-        NAME: BEV_scatter
-        NUM_BEV_FEATURES: 64
+        NAME: BEV_mvlidarnet
+        NUM_BEV_FEATURES: 3
 
     BACKBONE_2D:
-        NAME: BaseBEVBackbone
-        LAYER_NUMS: [3, 5, 5]
-        LAYER_STRIDES: [2, 2, 2]
-        NUM_FILTERS: [64, 128, 256]
-        UPSAMPLE_STRIDES: [1, 2, 4]
-        NUM_UPSAMPLE_FILTERS: [128, 128, 128]
+        NAME: MVLidarNetBackbone
+        MULTI_INPUT_CHANNELS: [3, 7]
+        # MULTI_INPUT_CHANNELS: [5, 7]
 
     DENSE_HEAD:
-        NAME: CenterHead 
+        NAME: CenterHead  # IOU_AWARE
         CLASS_AGNOSTIC: False
 
         CLASS_NAMES_EACH_HEAD: [
@@ -87,7 +85,7 @@ MODEL:
             }
 
         TARGET_ASSIGNER_CONFIG:
-            FEATURE_MAP_STRIDE: 2
+            FEATURE_MAP_STRIDE: 4
             NUM_MAX_OBJS: 500
             GAUSSIAN_OVERLAP: 0.1      
             MIN_RADIUS: 2
@@ -113,7 +111,7 @@ MODEL:
                 NMS_THRESH: 0.7
                 NMS_PRE_MAXSIZE: 4096
                 NMS_POST_MAXSIZE: 500
-
+        
         # 扩充项
         WITH_IOU_LOSS: True  # 使用iou loss
         IOU_LOSS_TYPE: GIOU_3D  # 目前有三种IOU损失函数：IOU_HEI、IOU_3D、GIOU_3D
@@ -136,9 +134,8 @@ MODEL:
             NMS_PRE_MAXSIZE: 4096
             NMS_POST_MAXSIZE: 500
 
-
 OPTIMIZATION:
-    BATCH_SIZE_PER_GPU: 4
+    BATCH_SIZE_PER_GPU: 16
     NUM_EPOCHS: 80
 
     OPTIMIZER: adam_onecycle

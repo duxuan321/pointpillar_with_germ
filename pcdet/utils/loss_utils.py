@@ -672,8 +672,10 @@ class IOULoss(nn.Module):
     Refer to https://github.com/tianweiy/CenterPoint
     """
 
-    def __init__(self):
+    def __init__(self,stride,voxel_size):
         super(IOULoss, self).__init__()
+        self.stride = stride
+        self.voxel_size = voxel_size
 
     def forward(self, output, mask, ind=None, target=None):
         """
@@ -690,11 +692,11 @@ class IOULoss(nn.Module):
             pred = _transpose_and_gather_feat(output, ind)
 
         # 先解算成标准的格式
-        pred[:,:,:2] *= 0.16*2
+        pred[:,:,:2] *= self.stride * self.voxel_size
         pred[:,:,3:6] = pred[:,:,3:6].exp()
         # pred[:,:,]
 
-        target[:,:,:2] *= 0.16*2
+        target[:,:,:2] *= self.stride * self.voxel_size
         target[:,:,3:6] = target[:,:,3:6].exp()
 
         # loss = _iou_loss_hei(pred, target, mask)
