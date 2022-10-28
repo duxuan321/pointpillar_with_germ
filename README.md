@@ -79,7 +79,7 @@ MODEL:
             LABEL_ASSIGN_FLAG: v2    # 加入这一行
 ```
 
-#### 4.3 更换maxpooling后处理
+#### 4.3 更换maxpooling后处理(ped 和 cyclist效果交叉，不建议使用)
 ```
 MODEL:
     NAME: CenterPoint
@@ -100,12 +100,13 @@ MODEL:
 
     ...
 
-    WITH_IOU_LOSS: True  # 使用iou loss
-    IOU_WEIGHT: 2   # iou_loss权重
+        WITH_IOU_LOSS: True  # 使用iou loss
+        IOU_LOSS_TYPE: GIOU_3D  # 目前有三种IOU损失函数：IOU_HEI、IOU_3D、GIOU_3D
+        IOU_WEIGHT: 1   # iou_loss权重
 ```
 
     
-#### 4.5 使用iou aware(center head)目前还在实验阶段
+#### 4.5 使用iou aware(center head)
 以下标注IOU_AWARE的都要加上
 ```
 MODEL:
@@ -113,7 +114,7 @@ MODEL:
     ...
 
     DENSE_HEAD:
-        NAME: CenterHead_iou_aware  # IOU_AWARE
+        NAME: CenterHead 
         CLASS_AGNOSTIC: False
 
         CLASS_NAMES_EACH_HEAD: [
@@ -134,6 +135,14 @@ MODEL:
 
                 'iou': {'out_channels': 1, 'num_conv': 2},    # IOU_AWARE
             }
+            
+            # 扩充项
+            # WITH_IOU_LOSS: True  # 使用iou loss
+            IOU_LOSS_TYPE: GIOU_3D  # 目前有三种IOU损失函数：IOU_HEI、IOU_3D、GIOU_3D
+            IOU_WEIGHT: 1   # iou_loss权重
+    
+            # WITH_IOU_AWARE_LOSS: True   # IOU_AWARE
+            IOU_AWARE_WEIGHT: 1      # IOU_AWARE
 
         TARGET_ASSIGNER_CONFIG:
             FEATURE_MAP_STRIDE: 2
@@ -162,12 +171,4 @@ MODEL:
                 NMS_PRE_MAXSIZE: 4096
                 NMS_POST_MAXSIZE: 500
 
-    POST_PROCESSING:
-        ...
-        
-    # WITH_IOU_LOSS: True  # 使用iou loss
-    # IOU_WEIGHT: 1   # iou_loss权重
-
-    WITH_IOU_AWARE_LOSS: True   # IOU_AWARE
-    IOU_AWARE_WEIGHT: 1      # IOU_AWARE
 ```
