@@ -4,11 +4,17 @@ import torch
 class PointPillar(Detector3DTemplate):
     def __init__(self, model_cfg, num_class, dataset):
         super().__init__(model_cfg=model_cfg, num_class=num_class, dataset=dataset)
-        self.module_list = self.build_networks()
+        self.module_list = self.build_networks() #! 这里存的是names
+        # self.gene_type = "OrderedDict([('blocks.0.0.out_channels.1', 0.75), ('blocks.0.0.kernel_size', 3),('blocks.0.2.kernel_size', 3), ('blocks.0.4.kernel_size', 3), ('blocks.0.6.kernel_size', 3), ('blocks.1.0.out_channels.1', 1.0), ('blocks.1.0.kernel_size', 3), ('blocks.1.2.kernel_size', 3), ('blocks.1.4.kernel_size', 3), ('blocks.1.6.kernel_size', 3), ('blocks.1.8.kernel_size', 3), ('blocks.1.10.kernel_size', 3), ('blocks.2.0.out_channels.1', 0.25), ('blocks.2.0.kernel_size', 3), ('blocks.2.2.kernel_size', 3), ('blocks.2.4.kernel_size', 3), ('blocks.2.6.kernel_size', 3), ('blocks.2.8.kernel_size', 3), ('blocks.2.10.kernel_size', 3)])"
+        self.gene_type = None
 
     def forward(self, batch_dict):
         for cur_module in self.module_list:
-            batch_dict = cur_module(batch_dict)
+            cur_module = getattr(self, cur_module)
+            if cur_module.__class__.__name__ == 'BEVBackboneSuperNet':
+                batch_dict = cur_module(batch_dict, self.gene_type)
+            else:
+                batch_dict = cur_module(batch_dict)
         if self.training:
             loss, tb_dict, disp_dict = self.get_training_loss()
 

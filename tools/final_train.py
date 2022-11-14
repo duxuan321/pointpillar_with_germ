@@ -3,7 +3,7 @@ import datetime
 import glob
 import os
 from pathlib import Path
-from weakref import finalize
+from xxlimited import Str
 from test import repeat_eval_ckpt
 
 import torch
@@ -16,6 +16,8 @@ from pcdet.models import build_network, model_fn_decorator
 from pcdet.utils import common_utils
 from train_utils.optimization import build_optimizer, build_scheduler
 from train_utils.train_utils import train_model
+import re
+from eval_utils import eval_utils
 from icecream import ic
 
 def parse_config():
@@ -43,10 +45,8 @@ def parse_config():
     parser.add_argument('--start_epoch', type=int, default=0, help='')
     parser.add_argument('--num_epochs_to_eval', type=int, default=0, help='number of checkpoints to be evaluated')
     parser.add_argument('--save_to_file', action='store_true', default=False, help='')
-    parser.add_argument('--finalize', action='store_true', default=False)
 
     args = parser.parse_args()
-    # import pdb;pdb.set_trace()
     cfg_from_yaml_file(args.cfg_file, cfg)
     cfg.TAG = Path(args.cfg_file).stem
     cfg.EXP_GROUP_PATH = '/'.join(args.cfg_file.split('/')[1:-1])  # remove 'cfgs' and 'xxxx.yaml'
@@ -78,10 +78,7 @@ def main():
     if args.fix_random_seed:
         common_utils.set_random_seed(666 + cfg.LOCAL_RANK)
 
-    if args.finalize:
-        output_dir = cfg.ROOT_DIR / 'output' / 'final_train' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
-    else:
-        output_dir = cfg.ROOT_DIR / 'output' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
+    output_dir = cfg.ROOT_DIR / 'output' / 'final_train' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
     ckpt_dir = output_dir / 'ckpt'
     output_dir.mkdir(parents=True, exist_ok=True)
     ckpt_dir.mkdir(parents=True, exist_ok=True)
@@ -118,9 +115,6 @@ def main():
     )
 
     model = build_network(model_cfg=cfg.MODEL, num_class=len(cfg.CLASS_NAMES), dataset=train_set)
-    if args.sync_bn:
-        model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
-    model.cuda()
 
     optimizer = build_optimizer(model, cfg.OPTIMIZATION)
 
@@ -131,38 +125,30 @@ def main():
         model.load_params_from_file(filename=args.pretrained_model, to_cpu=dist_train, logger=logger)
 
     if args.ckpt is not None:
-        # if args.finalize:
-        #     assert model.gene_type is not None
-        #     rollout = model.backbone_2d.search_space.rollout_from_genotype(model.gene_type)
-        #     model.backbone_2d = model.backbone_2d.finalize_rollout(rollout)
-            # model.load_params_from_file(filename=args.ckpt, to_cpu=dist_train, logger=logger)
-            # model.load_state_dict(torch.load(args.ckpt, map_location='cpu')['model_state'])
-        it, start_epoch = model.load_params_with_optimizer(args.ckpt, to_cpu=dist_train, optimizer=optimizer, logger=logger)
+        model.load_params_from_file(filename=args.ckpt, logger=logger, to_cpu=dist_train)
         last_epoch = start_epoch + 1
     else:
-        ckpt_list = glob.glob(str(ckpt_dir / '*checkpoint_epoch_*.pth'))
-        if len(ckpt_list) > 0:
-            ckpt_list.sort(key=os.path.getmtime)
-            it, start_epoch = model.load_params_with_optimizer(
-                ckpt_list[-1], to_cpu=dist_train, optimizer=optimizer, logger=logger
-            )
-            last_epoch = start_epoch + 1
+        pass
 
-    if args.finalize:
-        assert model.gene_type is not None
-        rollout = model.backbone_2d.search_space.rollout_from_genotype(model.gene_type)
-        model.backbone_2d = model.backbone_2d.finalize_rollout(rollout)
-        start_epoch = 0
+    #todo: 检查finalize
+    rollout = model.backbone_2d.search_space.rollout_from_genotype(cfg.genotype)
+    model.backbone_2d = model.backbone_2d.finalize_rollout(rollout)
+    model.gene_type = cfg.genotype 
+    model.to('cuda')
 
     model.train()  # before wrap to DistributedDataParallel to support fixed some parameters
     if dist_train:
         model = nn.parallel.DistributedDataParallel(model, device_ids=[cfg.LOCAL_RANK % torch.cuda.device_count()])
     logger.info(model)
 
+    import aw_nas
+    from aw_nas.final.cnn_trainer import CNNFinalTrainer
+    # lr_scheduler = CNNFinalTrainer._init_scheduler(optimizer, cfg.OPTIMIZATION.optimizer_scheduler_cfg)
     lr_scheduler, lr_warmup_scheduler = build_scheduler(
         optimizer, total_iters_each_epoch=len(train_loader), total_epochs=args.epochs,
         last_epoch=last_epoch, optim_cfg=cfg.OPTIMIZATION
     )
+    lr_warmup_scheduler = None
 
     # -----------------------start training---------------------------
     logger.info('**********************Start training %s/%s(%s)**********************'
@@ -205,10 +191,12 @@ def main():
     eval_output_dir.mkdir(parents=True, exist_ok=True)
     args.start_epoch = max(args.epochs - args.num_epochs_to_eval, 0)  # Only evaluate the last args.num_epochs_to_eval epochs
 
-    repeat_eval_ckpt(
-        model.module if dist_train else model,
-        test_loader, args, eval_output_dir, logger, ckpt_dir,
-        dist_test=dist_train
+    num_list = re.findall(r'\d+', args.ckpt) if args.ckpt is not None else []
+    epoch_id = num_list[-1] if num_list.__len__() > 0 else 'no_number'
+
+    eval_utils.eval_one_epoch(
+        cfg, model, test_loader, epoch_id, logger, dist_test=dist_train,
+        result_dir=eval_output_dir, save_to_file=args.save_to_file
     )
     logger.info('**********************End evaluation %s/%s(%s)**********************' %
                 (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))

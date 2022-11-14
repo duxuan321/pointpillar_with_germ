@@ -44,12 +44,16 @@ class Detector3DTemplate(nn.Module):
             'voxel_size': self.dataset.voxel_size,
             'depth_downsample_factor': self.dataset.depth_downsample_factor
         }
+        module_names = []
         for module_name in self.module_topology:
             module, model_info_dict = getattr(self, 'build_%s' % module_name)(
                 model_info_dict=model_info_dict
             )
             self.add_module(module_name, module)
-        return model_info_dict['module_list']
+            if module is not None:
+                module_names.append(module_name)
+        # return model_info_dict['module_list']
+        return module_names
 
     def build_vfe(self, model_info_dict):
         if self.model_cfg.get('VFE', None) is None:

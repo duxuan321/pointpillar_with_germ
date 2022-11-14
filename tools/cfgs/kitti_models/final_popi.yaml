@@ -72,40 +72,20 @@ MODEL:
     BACKBONE_2D:
         LAYER_NUMS: [3, 5, 5]
         LAYER_STRIDES: [2, 2, 2]
-        # NUM_FILTERS: [64, 128, 256]
-        NUM_FILTERS: [48, 128, 64]
+        NUM_FILTERS: [64, 128, 256]
         UPSAMPLE_STRIDES: [1, 2, 4]
         NUM_UPSAMPLE_FILTERS: [128, 128, 128]
-        NAME: BaseBEVBackbone
-        # NAME: BEVBackboneSuperNet
-        # SEARCH_CFG:
-        #   search_space_cfg: {}
-        #   # rollout_type: germ
-        #   supernet_cfg:
-        #     # depth_choices_ratio: [1, 0.8, 0.64]
-        #     mult_ratio_choices: [0.25, 0.5, 0.75, 1]
-        #     channels: [64, 128, 256]
-        #     kernel_sizes: [3]
-        #     schedule_cfg:
-        #       kernel_sizes:
-        #           - epoch: 0
-        #             choices: [3]
-        #       mult_ratio_choices:
-        #           - epoch: 0
-        #             choices: [1]
-        #           - epoch: 51
-        #             choices: [0.75, 1]
-        #           - epoch: 61
-        #             choices: [0.5, 0.75, 1]
-        #           - epoch: 71
-        #             choices: [0.25, 0.5, 0.75, 1]
-              # depth_choices_ratio:
-              #     - epoch: 0
-              #       choices: [1]
-                  # - epoch: 71
-                  #   choices: [0.8, 1]
-                  # - epoch: 91
-                  #   choices: [0.64, 0.8, 1]
+        # NAME: BaseBEVBackbone
+        NAME: BEVBackboneSuperNet
+        SEARCH_CFG:
+          search_space_cfg: {}
+          # rollout_type: germ
+          supernet_cfg:
+            # depth_choices_ratio: [1, 0.8, 0.64]
+            mult_ratio_choices: [0.25, 0.5, 0.75, 1]
+            channels: [64, 128, 256]
+            kernel_sizes: [3]
+            
 
     DENSE_HEAD:
         NAME: AnchorHeadSingle
@@ -181,11 +161,11 @@ MODEL:
 
 OPTIMIZATION:
     BATCH_SIZE_PER_GPU: 4
-    NUM_EPOCHS: 50
+    NUM_EPOCHS: 10
 
-    OPTIMIZER: adam_onecycle
-    LR: 0.003
-    WEIGHT_DECAY: 0.01
+    OPTIMIZER: sgd
+    LR: 0.000003
+    WEIGHT_DECAY: 0.005
     MOMENTUM: 0.9
 
     MOMS: [0.95, 0.85]
@@ -199,3 +179,16 @@ OPTIMIZATION:
     WARMUP_EPOCH: 1
 
     GRAD_NORM_CLIP: 10
+
+    optimizer_scheduler_cfg:
+      type: MultiStepLR
+      milestones: [16, 22]
+      gamma: 0.1
+
+genotype: OrderedDict([('blocks.0.0.out_channels.1', 0.75), ('blocks.0.0.kernel_size', 3),
+  ('blocks.0.2.kernel_size', 3), ('blocks.0.4.kernel_size', 3), ('blocks.0.6.kernel_size',
+  3), ('blocks.1.0.out_channels.1', 1.0), ('blocks.1.0.kernel_size', 3), ('blocks.1.2.kernel_size',
+  3), ('blocks.1.4.kernel_size', 3), ('blocks.1.6.kernel_size', 3), ('blocks.1.8.kernel_size',
+  3), ('blocks.1.10.kernel_size', 3), ('blocks.2.0.out_channels.1', 0.25), ('blocks.2.0.kernel_size',
+  3), ('blocks.2.2.kernel_size', 3), ('blocks.2.4.kernel_size', 3), ('blocks.2.6.kernel_size',
+  3), ('blocks.2.8.kernel_size', 3), ('blocks.2.10.kernel_size', 3)])

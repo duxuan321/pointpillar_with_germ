@@ -17,13 +17,15 @@ from pcdet.config import cfg, cfg_from_list, cfg_from_yaml_file, log_config_to_f
 from pcdet.datasets import build_dataloader
 from pcdet.models import build_network
 from pcdet.utils import common_utils
+import yaml
 from icecream import ic 
 
 
 def parse_config():
     parser = argparse.ArgumentParser(description='arg parser')
     parser.add_argument('--cfg_file', type=str, default=None, help='specify the config for training')
-
+    parser.add_argument('--sample_num', type=int, default=3, required=False)
+    parser.add_argument('--out_file', type=str, default='sample')
     parser.add_argument('--batch_size', type=int, default=None, required=False, help='batch size for training')
     parser.add_argument('--workers', type=int, default=4, help='number of workers for dataloader')
     parser.add_argument('--extra_tag', type=str, default='default', help='extra tag for this experiment')
@@ -40,7 +42,6 @@ def parse_config():
     parser.add_argument('--eval_all', action='store_true', default=False, help='whether to evaluate all checkpoints')
     parser.add_argument('--ckpt_dir', type=str, default=None, help='specify a ckpt directory to be evaluated if needed')
     parser.add_argument('--save_to_file', action='store_true', default=False, help='')
-    parser.add_argument('--finalize', action='store_true', default=False)
 
     args = parser.parse_args()
 
@@ -54,99 +55,6 @@ def parse_config():
         cfg_from_list(args.set_cfgs, cfg)
 
     return args, cfg
-
-
-def eval_single_ckpt(model, test_loader, args, eval_output_dir, logger, epoch_id, dist_test=False):
-    # load checkpoint
-    model.load_params_from_file(filename=args.ckpt, logger=logger, to_cpu=dist_test)
-    model.cuda()
-
-    ic(epoch_id)
-    if hasattr(model, 'backbone_2d') and hasattr(model.backbone_2d, 'ctx'):
-        model.backbone_2d.search_space.on_epoch_start(int(epoch_id))
-        if model.gene_type is None:
-            model.gene_type = model.backbone_2d.search_space.random_sample().genotype
-    # start evaluation
-    eval_utils.eval_one_epoch(
-        cfg, model, test_loader, epoch_id, logger, dist_test=dist_test,
-        result_dir=eval_output_dir, save_to_file=args.save_to_file
-    )
-    if hasattr(model, 'backbone_2d') and hasattr(model.backbone_2d, 'ctx'):
-        ic(model.gene_type)
-
-def get_no_evaluated_ckpt(ckpt_dir, ckpt_record_file, args):
-    ckpt_list = glob.glob(os.path.join(ckpt_dir, '*checkpoint_epoch_*.pth'))
-    ckpt_list.sort(key=os.path.getmtime)
-    evaluated_ckpt_list = [float(x.strip()) for x in open(ckpt_record_file, 'r').readlines()]
-
-    for cur_ckpt in ckpt_list:
-        num_list = re.findall('checkpoint_epoch_(.*).pth', cur_ckpt)
-        if num_list.__len__() == 0:
-            continue
-
-        epoch_id = num_list[-1]
-        if 'optim' in epoch_id:
-            continue
-        if float(epoch_id) not in evaluated_ckpt_list and int(float(epoch_id)) >= args.start_epoch:
-            return epoch_id, cur_ckpt
-    return -1, None
-
-
-def repeat_eval_ckpt(model, test_loader, args, eval_output_dir, logger, ckpt_dir, dist_test=False):
-    # evaluated ckpt record
-    ckpt_record_file = eval_output_dir / ('eval_list_%s.txt' % cfg.DATA_CONFIG.DATA_SPLIT['test'])
-    with open(ckpt_record_file, 'a'):
-        pass
-
-    # tensorboard log
-    if cfg.LOCAL_RANK == 0:
-        tb_log = SummaryWriter(log_dir=str(eval_output_dir / ('tensorboard_%s' % cfg.DATA_CONFIG.DATA_SPLIT['test'])))
-    total_time = 0
-    first_eval = True
-
-    while True:
-        # check whether there is checkpoint which is not evaluated
-        cur_epoch_id, cur_ckpt = get_no_evaluated_ckpt(ckpt_dir, ckpt_record_file, args)
-        if cur_epoch_id == -1 or int(float(cur_epoch_id)) < args.start_epoch:
-            wait_second = 30
-            if cfg.LOCAL_RANK == 0:
-                print('Wait %s seconds for next check (progress: %.1f / %d minutes): %s \r'
-                      % (wait_second, total_time * 1.0 / 60, args.max_waiting_mins, ckpt_dir), end='', flush=True)
-            time.sleep(wait_second)
-            total_time += 30
-            if total_time > args.max_waiting_mins * 60 and (first_eval is False):
-                break
-            continue
-
-        total_time = 0
-        first_eval = False
-
-        model.load_params_from_file(filename=cur_ckpt, logger=logger, to_cpu=dist_test)
-        model.cuda()
-
-        # start evaluation
-        cur_result_dir = eval_output_dir / ('epoch_%s' % cur_epoch_id) / cfg.DATA_CONFIG.DATA_SPLIT['test']
-        ic(cur_epoch_id)
-        if hasattr(model, 'backbone_2d') and hasattr(model.backbone_2d, 'ctx'):
-            model.backbone_2d.search_space.on_epoch_start(int(cur_epoch_id))
-            if model.gene_type is None:
-                model.gene_type = model.backbone_2d.search_space.random_sample().genotype
-        tb_dict = eval_utils.eval_one_epoch(
-            cfg, model, test_loader, cur_epoch_id, logger, dist_test=dist_test,
-            result_dir=cur_result_dir, save_to_file=args.save_to_file
-        )
-
-        if cfg.LOCAL_RANK == 0:
-            for key, val in tb_dict.items():
-                tb_log.add_scalar(key, val, cur_epoch_id)
-
-        # record this epoch which has been evaluated
-        with open(ckpt_record_file, 'a') as f:
-            print('%s' % cur_epoch_id, file=f)
-        logger.info('Epoch %s has been evaluated' % cur_epoch_id)
-    if hasattr(model, 'backbone_2d') and hasattr(model.backbone_2d, 'ctx'):
-        ic(model.gene_type)
-
 
 def main():
     args, cfg = parse_config()
@@ -205,17 +113,40 @@ def main():
     )
 
     model = build_network(model_cfg=cfg.MODEL, num_class=len(cfg.CLASS_NAMES), dataset=test_set)
+    
+    #! load checkpoint
+    model.load_params_from_file(filename=args.ckpt, logger=logger, to_cpu=dist_test)
+    model.cuda()
+    ic(epoch_id)
+    if hasattr(model, 'backbone_2d') and hasattr(model.backbone_2d, 'ctx'):
+        model.backbone_2d.search_space.on_epoch_start(int(epoch_id))
+        with open(args.out_file + '.yaml', "w") as of:
+            for arch_id in range(args.sample_num):
+                of.write("# ---- Arch {} ----\n".format(arch_id))
+                yaml.safe_dump([model.backbone_2d.search_space.random_sample().genotype], of)
+                of.write("\n")
+        with open(args.out_file + '.yaml', "r") as fr:
+            samples = yaml.load(fr)
+    
+    AP = {}
+    tested_geno = set()
     with torch.no_grad():
-        if args.finalize:
-            assert model.gene_type is not None
-            rollout = model.backbone_2d.search_space.rollout_from_genotype(model.gene_type)
-            model.backbone_2d = model.backbone_2d.finalize_rollout(rollout)
-            ic(model)
-        if args.eval_all:
-            repeat_eval_ckpt(model, test_loader, args, eval_output_dir, logger, ckpt_dir, dist_test=dist_test)
-        else:
-            eval_single_ckpt(model, test_loader, args, eval_output_dir, logger, epoch_id, dist_test=dist_test)
-
+        for arch_id, geno in enumerate(samples):
+            ic(arch_id)
+            if geno in tested_geno: #避免重复架构的测试
+                continue
+            model.gene_type = geno
+            # start evaluation
+            result_str, result_dict = eval_utils.eval_one_epoch(
+                    cfg, model, test_loader, epoch_id, logger, dist_test=dist_test,
+                    result_dir=eval_output_dir, save_to_file=args.save_to_file, arch_id=arch_id)
+            AP[arch_id] = result_dict['Car_3d/moderate_R40']
+            tested_geno.add(geno)
+    import json
+    with open(args.out_file + ".json", "w") as fw:
+        # json.dump(AP, fw)
+        sorted_AP = {k:v for k,v in sorted(AP.items(), key = lambda kv:kv[1])}
+        json.dump(sorted_AP, fw)
 
 if __name__ == '__main__':
     main()

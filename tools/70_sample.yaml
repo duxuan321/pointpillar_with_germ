@@ -1,0 +1,840 @@
+# ---- Arch 0 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 1 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 2 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 3 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 4 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 5 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 6 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 7 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 8 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 9 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 10 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 11 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 12 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 13 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 14 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 15 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 16 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 17 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 18 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 19 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 20 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 21 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 22 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 23 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 24 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 25 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 26 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 27 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 28 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 29 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 30 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 31 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 32 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 33 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 34 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 35 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 36 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 37 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 38 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 39 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 40 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 41 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 42 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 43 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 44 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 45 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 46 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 47 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 48 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 49 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 50 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 51 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 52 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 53 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 54 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 55 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 56 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 57 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 58 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 1.0), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 59 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  1.0), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 60 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.5), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 61 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 62 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.5), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 63 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 64 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 65 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 66 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.25), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 67 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 1.0), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.75), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 68 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.25), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.25), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
+# ---- Arch 69 ----
+- OrderedDict([('backbone.blocks.0.0.out_channels.1', 0.75), ('backbone.blocks.0.0.kernel_size',
+  3), ('backbone.blocks.0.2.kernel_size', 3), ('backbone.blocks.0.4.kernel_size',
+  3), ('backbone.blocks.0.6.kernel_size', 3), ('backbone.blocks.1.0.out_channels.1',
+  0.75), ('backbone.blocks.1.0.kernel_size', 3), ('backbone.blocks.1.2.kernel_size',
+  3), ('backbone.blocks.1.4.kernel_size', 3), ('backbone.blocks.1.6.kernel_size',
+  3), ('backbone.blocks.1.8.kernel_size', 3), ('backbone.blocks.1.10.kernel_size',
+  3), ('backbone.blocks.2.0.out_channels.1', 0.5), ('backbone.blocks.2.0.kernel_size',
+  3), ('backbone.blocks.2.2.kernel_size', 3), ('backbone.blocks.2.4.kernel_size',
+  3), ('backbone.blocks.2.6.kernel_size', 3), ('backbone.blocks.2.8.kernel_size',
+  3), ('backbone.blocks.2.10.kernel_size', 3)])
+
