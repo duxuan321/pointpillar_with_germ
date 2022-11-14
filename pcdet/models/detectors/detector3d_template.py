@@ -9,6 +9,8 @@ from .. import backbones_2d, backbones_3d, dense_heads, roi_heads
 from ..backbones_2d import map_to_bev
 from ..backbones_3d import pfe, vfe
 from ..model_utils import model_nms_utils
+import aw_nas
+from aw_nas.germ import GermSearchSpace
 
 
 class Detector3DTemplate(nn.Module):
@@ -42,12 +44,16 @@ class Detector3DTemplate(nn.Module):
             'voxel_size': self.dataset.voxel_size,
             'depth_downsample_factor': self.dataset.depth_downsample_factor
         }
+        module_names = []
         for module_name in self.module_topology:
             module, model_info_dict = getattr(self, 'build_%s' % module_name)(
                 model_info_dict=model_info_dict
             )
             self.add_module(module_name, module)
-        return model_info_dict['module_list']
+            if module is not None:
+                module_names.append(module_name)
+        # return model_info_dict['module_list']
+        return module_names
 
     def build_vfe(self, model_info_dict):
         if self.model_cfg.get('VFE', None) is None:
@@ -102,10 +108,19 @@ class Detector3DTemplate(nn.Module):
             num_bev_features = model_info_dict['num_bev_features']
         except:
             num_bev_features = -1
-        backbone_2d_module = backbones_2d.__all__[self.model_cfg.BACKBONE_2D.NAME](
-            model_cfg=self.model_cfg.BACKBONE_2D,
-            input_channels=num_bev_features
-        )
+
+        if self.model_cfg.BACKBONE_2D.get('SEARCH_CFG', None):
+            search_space = GermSearchSpace(**self.model_cfg.BACKBONE_2D.SEARCH_CFG.search_space_cfg)
+            backbone_2d_module = backbones_2d.__all__[self.model_cfg.BACKBONE_2D.NAME](
+                model_cfg=self.model_cfg.BACKBONE_2D,
+                input_channels=num_bev_features,
+                search_space =  search_space,
+                **self.model_cfg.BACKBONE_2D.SEARCH_CFG.supernet_cfg
+            )
+        else:
+            backbone_2d_module = backbones_2d.__all__[self.model_cfg.BACKBONE_2D.NAME](
+                model_cfg=self.model_cfg.BACKBONE_2D,
+                input_channels=num_bev_features)
         model_info_dict['module_list'].append(backbone_2d_module)
         model_info_dict['num_bev_features'] = backbone_2d_module.num_bev_features
         return backbone_2d_module, model_info_dict

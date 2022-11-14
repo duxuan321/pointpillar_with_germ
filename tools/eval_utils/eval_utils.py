@@ -7,6 +7,7 @@ import tqdm
 
 from pcdet.models import load_data_to_gpu
 from pcdet.utils import common_utils
+from icecream import ic
 
 
 def statistics_info(cfg, ret_dict, metric, disp_dict):
@@ -19,7 +20,7 @@ def statistics_info(cfg, ret_dict, metric, disp_dict):
         '(%d, %d) / %d' % (metric['recall_roi_%s' % str(min_thresh)], metric['recall_rcnn_%s' % str(min_thresh)], metric['gt_num'])
 
 
-def eval_one_epoch(cfg, model, dataloader, epoch_id, logger, dist_test=False, save_to_file=False, result_dir=None):
+def eval_one_epoch(cfg, model, dataloader, epoch_id, logger, dist_test=False, save_to_file=False, result_dir=None, arch_id=None):
     result_dir.mkdir(parents=True, exist_ok=True)
 
     final_output_dir = result_dir / 'final_result' / 'data'
@@ -48,6 +49,16 @@ def eval_one_epoch(cfg, model, dataloader, epoch_id, logger, dist_test=False, sa
         )
     model.eval()
 
+    if dist_test and hasattr(model.module, 'backbone_2d') and hasattr(model.module.backbone_2d, 'ctx'):
+        model.module.backbone_2d.search_space.on_epoch_start(int(epoch_id))
+        ic(model.module.gene_type)
+        if model.module.gene_type is None:
+            import pdb;pdb.set_trace() #多线程测试时暂不支持随机arch测试
+    elif hasattr(model, 'backbone_2d') and hasattr(model.backbone_2d, 'ctx'):
+        model.backbone_2d.search_space.on_epoch_start(int(epoch_id))
+        if model.gene_type is None:
+            model.gene_type = model.backbone_2d.search_space.random_sample().genotype
+    
     if cfg.LOCAL_RANK == 0:
         progress_bar = tqdm.tqdm(total=len(dataloader), leave=True, desc='eval', dynamic_ncols=True)
     start_time = time.time()
@@ -118,7 +129,11 @@ def eval_one_epoch(cfg, model, dataloader, epoch_id, logger, dist_test=False, sa
 
     logger.info('Result is save to %s' % result_dir)
     logger.info('****************Evaluation done.*****************')
-    return ret_dict
+    # return ret_dict
+    if arch_id is None:
+        return ret_dict
+    else:
+        return result_dict
 
 
 if __name__ == '__main__':

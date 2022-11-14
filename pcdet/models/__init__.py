@@ -42,8 +42,13 @@ def model_fn_decorator():
     def model_func(model, batch_dict):
         load_data_to_gpu(batch_dict)
 
-        # flops, params = profile(model, inputs=(batch_dict,))
-        # print(flops/1e9,params/1e6) #flops单位G，para单位M
+        '''from icecream import ic
+        assert batch_dict['batch_size'] == 1
+        flops, params = profile(model, inputs=(batch_dict,))
+        print(flops/1e9,params/1e6) #flops单位G，para单位M
+        ic(flops/1e9, params/1e6)
+        import pdb;pdb.set_trace()'''
+
         ret_dict, tb_dict, disp_dict = model(batch_dict)
 
         loss = ret_dict['loss'].mean()

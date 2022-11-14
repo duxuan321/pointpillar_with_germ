@@ -30,10 +30,12 @@ from pcdet.models import load_data_to_gpu
 # quant_nn.QuantLinear.set_default_quant_desc_input(quant_desc_input)
 # quant_nn.QuantConv2d.set_default_quant_desc_input(quant_desc_input)
 # quant_nn.QuantConv1d.set_default_quant_desc_input(quant_desc_input)
+from icecream import ic
 
 def parse_config():
     parser = argparse.ArgumentParser(description='arg parser')
     parser.add_argument('--cfg_file', type=str, default=None, help='specify the config for training')
+    parser.add_argument('--use_same_seed', action='store_true', default=False, help='')
 
     parser.add_argument('--batch_size', type=int, default=None, required=False, help='batch size for training')
     parser.add_argument('--epochs', type=int, default=None, required=False, help='number of epochs to train for')
@@ -124,6 +126,8 @@ def main():
         total_gpus, cfg.LOCAL_RANK = getattr(common_utils, 'init_dist_%s' % args.launcher)(
             args.tcp_port, args.local_rank, backend='nccl'
         )
+        ic(cfg.LOCAL_RANK)
+        torch.distributed.barrier()
         dist_train = True
 
     if args.batch_size is None:
@@ -136,6 +140,15 @@ def main():
 
     if args.fix_random_seed:
         common_utils.set_random_seed(666 + cfg.LOCAL_RANK)
+
+    if args.use_same_seed: # 保证训练子网络时，每个进程的sample相同的架构进行forward
+        import numpy as np
+        import random
+        seed = 0
+        np.random.seed(seed)
+        random.seed(seed)
+        torch.manual_seed(seed)
+        ic(seed)
 
     output_dir = cfg.ROOT_DIR / 'output' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
     ckpt_dir = output_dir / 'ckpt'
@@ -216,6 +229,7 @@ def main():
     #         collect_stats(model, dataloader, num_batches=20)
     #         compute_amax(model, method="percentile", percentile=99.99) # max, mse, entropy
 
+    args.max_ckpt_save_num = max(args.max_ckpt_save_num, args.epochs - 49)
     # -----------------------start training---------------------------
     logger.info('**********************Start training %s/%s(%s)**********************'
                 % (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
@@ -236,7 +250,8 @@ def main():
         lr_warmup_scheduler=lr_warmup_scheduler,
         ckpt_save_interval=args.ckpt_save_interval,
         max_ckpt_save_num=args.max_ckpt_save_num,
-        merge_all_iters_to_one_epoch=args.merge_all_iters_to_one_epoch
+        merge_all_iters_to_one_epoch=args.merge_all_iters_to_one_epoch,
+        dist_train=dist_train
     )
 
     if hasattr(train_set, 'use_shared_memory') and train_set.use_shared_memory:

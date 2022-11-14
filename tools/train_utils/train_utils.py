@@ -6,7 +6,7 @@ import tqdm
 import time
 from torch.nn.utils import clip_grad_norm_
 from pcdet.utils import common_utils, commu_utils
-
+from icecream import ic
 
 
 def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, accumulated_iter, optim_cfg,
@@ -92,7 +92,7 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
 def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_cfg,
                 start_epoch, total_epochs, start_iter, rank, tb_log, ckpt_save_dir, train_sampler=None,
                 lr_warmup_scheduler=None, ckpt_save_interval=1, max_ckpt_save_num=50,
-                merge_all_iters_to_one_epoch=False):
+                merge_all_iters_to_one_epoch=False, dist_train=False):
     accumulated_iter = start_iter
     with tqdm.trange(start_epoch, total_epochs, desc='epochs', dynamic_ncols=True, leave=(rank == 0)) as tbar:
         total_it_each_epoch = len(train_loader)
@@ -111,6 +111,13 @@ def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_
                 cur_scheduler = lr_warmup_scheduler
             else:
                 cur_scheduler = lr_scheduler
+            if dist_train:
+                if hasattr(model.module, 'backbone_2d') and hasattr(model.module.backbone_2d, 'ctx'):
+                    model.module.backbone_2d.search_space.on_epoch_start(cur_epoch+1)
+                    ic()
+            elif hasattr(model, 'backbone_2d') and hasattr(model.backbone_2d, 'ctx'):
+                model.backbone_2d.search_space.on_epoch_start(cur_epoch+1)
+                ic()
             accumulated_iter = train_one_epoch(
                 model, optimizer, train_loader, model_func,
                 lr_scheduler=cur_scheduler,
